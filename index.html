@@ -49,20 +49,19 @@
   transform: scale(1.05);
 }
 
+/* السلايدر ممتد من أسفل الهيدر وحتى قبل الفوتر بـ30px */
 .hero-slider {
-  width: 100%;
-  height: 50vh;
-  overflow: hidden;
   position: relative;
+  width: 100%;
+  height: calc(100vh - 60px - 30px); /* 60px تقريبا ارتفاع الهيدر + 30px قبل الفوتر */
+  overflow: hidden;
 }
 
-header span { font-weight:bold; }
-header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; z-index:1002; }
-
+/* الصور داخل السلايدر */
 .hero-slider .slides img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* يحافظ على نسب الصورة ويملأ الإطار */
   position: absolute;
   top:0; left:0;
   opacity: 0;
@@ -73,6 +72,7 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
   opacity: 1;
 }
 
+/* النص على السلايدر */
 .hero-slider .hero-text {
   position: absolute;
   top: 35%;
@@ -80,7 +80,23 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
   color: #fff;
   font-size: 5vw;
   text-shadow: 0 0 10px black;
+  background: rgba(0,0,0,0.3); /* خلفية شبه شفافة للنص */
+  padding: 8px 15px;
+  border-radius: 8px;
 }
+
+/* متجاوب */
+@media (max-width:768px){
+  .hero-slider .hero-text { font-size:6vw; top:30%; right:5%; }
+}
+
+@media (max-width:480px){
+  .hero-slider { height: calc(100vh - 60px - 30px); }
+  .hero-slider .hero-text { font-size:7vw; top:25%; }
+}
+
+header span { font-weight:bold; }
+header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; z-index:1002; }
 
 /* أزرار السلايدر */
 .hero-slider button.prev-slide,
@@ -121,19 +137,7 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
 }
 .slide-dots span.active { background: #ffcc00; }
 
-/* متجاوب */
-@media (max-width:768px){
-  .hero-slider .hero-text { font-size:6vw; top:30%; right:5%; }
-  .hero-slider button.prev-slide,
-  .hero-slider button.next-slide { font-size:2rem; }
-}
 
-@media (max-width:480px){
-  .hero-slider { height:35vh; }
-  .hero-slider .hero-text { font-size:7vw; top:25%; }
-  .hero-slider button.prev-slide,
-  .hero-slider button.next-slide { font-size:1.5rem; padding:0 8px; }
-}
 /* Footer ثابت */
 footer {
   position: fixed;
@@ -244,6 +248,7 @@ slider.addEventListener("touchend", e => {
 
 </body>
 </html>
+
 
 
 
