@@ -5,14 +5,20 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard - جهاز معلومات شبكات المرافق</title>
 <style>
-  body { margin:0; font-family:sans-serif; direction:rtl; }
-  header { background:#004b8d; color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; }
-  header span { font-weight:bold; }
-  header a { color:white; text-decoration:none; margin-left:15px; }
-  .sidebar { width:220px; background:#2c3e50; color:white; position:fixed; top:0; left:0; height:100%; padding:20px; }
-  .sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; }
-  .sidebar a:hover { background:#34495e; padding-left:5px; }
-  .main-content { margin-left:240px; padding:30px; }
+body { margin:0; font-family:sans-serif; direction:rtl; }
+header { background:#004b8d; color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; }
+header span { font-weight:bold; }
+header a { color:white; text-decoration:none; margin-left:15px; }
+.sidebar { width:220px; background:#2c3e50; color:white; position:fixed; top:0; left:0; height:100%; padding:20px; }
+.sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; }
+.sidebar a:hover { background:#34495e; padding-left:5px; }
+.main-content { margin-left:240px; padding:30px; }
+#adminControl { margin-top:20px; }
+#adminControl input { width:70%; padding:8px; margin-right:5px; }
+#adminControl button { padding:8px; }
+.image-card { display:inline-block; margin:10px; text-align:center; }
+.image-card img { width:150px; height:100px; object-fit:cover; display:block; }
+.image-card button { margin-top:5px; padding:5px; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -33,40 +39,157 @@
 
 <div class="main-content">
   <h2>لوحة التحكم</h2>
-  <p>يمكنك هنا عرض البيانات والمحتوى حسب الصلاحية.</p>
+  <div id="imagesContainer"></div>
+
+  <!-- واجهة Admin لإدارة الصور -->
+  <div id="adminControl" style="display:none;">
+    <h3>إدارة الصور</h3>
+    <input type="text" id="newImageURL" placeholder="رابط الصورة من الإنترنت">
+    <!-- رفع من الجهاز المحلي -->
+    <input type="file" id="newImageFile" accept="image/*">
+    <button id="addImageBtn">إضافة صورة</button>
+  </div>
 </div>
 
 <script>
-// التحقق من تسجيل الدخول
+// ------------------ بيانات المستخدم ------------------
 let sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
 if(!sessionUser){
-    alert("يجب تسجيل الدخول أولاً");
-    window.location.href = "index.html";
+  alert("يجب تسجيل الدخول أولاً");
+  window.location.href = "index.html";
 }
-
-// عرض اسم المستخدم
 document.getElementById("userName").innerText = sessionUser.username;
 
 // التحكم في ظهور القوائم حسب الصلاحية
 if(sessionUser.role === "admin"){
-    document.getElementById("adminMenu").style.display = "block";
-    document.getElementById("userMenu").style.display = "block";
-    document.getElementById("guestMenu").style.display = "block";
-} else if(sessionUser.role === "user"){
-    document.getElementById("adminMenu").style.display = "none";
-    document.getElementById("userMenu").style.display = "block";
-    document.getElementById("guestMenu").style.display = "block";
-} else if(sessionUser.role === "guest"){
-    document.getElementById("adminMenu").style.display = "none";
-    document.getElementById("userMenu").style.display = "none";
-    document.getElementById("guestMenu").style.display = "block";
+  document.getElementById("adminMenu").style.display = "block";
+  document.getElementById("userMenu").style.display = "block";
+  document.getElementById("guestMenu").style.display = "block";
+  document.getElementById("adminControl").style.display = "block";
+}else if(sessionUser.role === "user"){
+  document.getElementById("adminMenu").style.display = "none";
+  document.getElementById("userMenu").style.display = "block";
+  document.getElementById("guestMenu").style.display = "block";
+}else{
+  document.getElementById("adminMenu").style.display = "none";
+  document.getElementById("userMenu").style.display = "none";
+  document.getElementById("guestMenu").style.display = "block";
 }
 
 // تسجيل الخروج
 document.getElementById("logoutLink").onclick = function(){
-    localStorage.removeItem("loggedUser");
-    window.location.href = "index.html";
+  localStorage.removeItem("loggedUser");
+  window.location.href = "index.html";
 };
+
+// ------------------ إعداد GitHub API ------------------
+const token = "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_GitHub"; // ضع التوكن الخاص بك هنا
+const owner = "gisnewvally-eng";
+const repo = "test";
+const branch = "main";
+const folder = "images";
+
+// ------------------ جلب الصور ------------------
+async function loadImages() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}?ref=${branch}`, {
+      headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+    });
+    const files = await res.json();
+    const container = document.getElementById("imagesContainer");
+    container.innerHTML = "";
+    files.forEach(file => {
+      const div = document.createElement("div");
+      div.className = "image-card";
+      div.innerHTML = `<img src="${file.download_url}" alt="">`;
+      if(sessionUser.role === "admin"){
+        div.innerHTML += `<button onclick="deleteImage('${file.name}')">حذف</button>`;
+      }
+      container.appendChild(div);
+    });
+  } catch(err){ console.error(err); }
+}
+loadImages();
+
+// ------------------ إضافة صورة ------------------
+document.getElementById("addImageBtn").onclick = async function(){
+  const url = document.getElementById("newImageURL").value;
+  const fileInput = document.getElementById("newImageFile");
+
+  // إذا اختار المستخدم رابط من الإنترنت
+  if(url){
+    const name = url.split("/").pop();
+    const content = btoa(await (await fetch(url)).arrayBuffer());
+    try {
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
+        method: "PUT",
+        headers: {
+          "Authorization": `token ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message: `Add image ${name}`, content: content, branch: branch })
+      });
+      const data = await res.json();
+      if(data.content){
+        document.getElementById("newImageURL").value = "";
+        loadImages();
+      } else alert("حدث خطأ أثناء الإضافة");
+    } catch(err){ console.error(err); }
+    return;
+  }
+
+  // إذا اختار المستخدم صورة من الجهاز المحلي
+  if(fileInput.files.length > 0){
+    const file = fileInput.files[0];
+    const name = file.name;
+    const reader = new FileReader();
+    reader.onloadend = async function() {
+      const base64Data = reader.result.split(',')[1];
+      try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `token ${token}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ message: `Add image ${name}`, content: base64Data, branch: branch })
+        });
+        const data = await res.json();
+        if(data.content){
+          fileInput.value = "";
+          loadImages();
+        } else alert("حدث خطأ أثناء الإضافة");
+      } catch(err){ console.error(err); }
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+
+  alert("اختر صورة من الإنترنت أو من جهازك أولاً");
+};
+
+
+// ------------------ حذف صورة ------------------
+async function deleteImage(name){
+  if(!confirm("هل تريد حذف هذه الصورة؟")) return;
+  try {
+    // أولاً الحصول على SHA للملف
+    const resSha = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}?ref=${branch}`, {
+      headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+    });
+    const dataSha = await resSha.json();
+    if(!dataSha.sha){ alert("الملف غير موجود"); return; }
+
+    const resDel = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
+      method: "DELETE",
+      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ message: `Delete image ${name}`, sha: dataSha.sha, branch: branch })
+    });
+    const dataDel = await resDel.json();
+    if(dataDel.commit) loadImages();
+    else alert("حدث خطأ أثناء الحذف");
+  } catch(err){ console.error(err); }
+}
 </script>
 
 </body>
