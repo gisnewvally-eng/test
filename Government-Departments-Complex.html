@@ -373,9 +373,15 @@ body.dark-mode #map #northArrow {
 
   <!-- Header with logo on the right (RTL) -->
   <header id="header">
-    <img src="logo.png" class="logo" alt="شعار">
-    <h1>خريطة مرافق مجمع المصالح الحكومية بمحافظة الوادي الجديد</h1>
-  </header>
+  <img src="logo.png" class="logo" alt="شعار">
+  <h1>خريطة مرافق مجمع المصالح الحكومية بمحافظة الوادي الجديد</h1>
+
+  <!-- أزرار الصفحة الرئيسية وتسجيل الخروج -->
+  <div style="position:absolute; left:20px; top:15px; display:flex; gap:10px;">
+    <button id="homeBtn" style="padding:6px 12px; font-weight:700; cursor:pointer;">🏠 الرئيسية</button>
+    <button id="logoutBtn" style="padding:6px 12px; font-weight:700; cursor:pointer;">🚪 تسجيل الخروج</button>
+  </div>
+</header>
 
  <!-- أزرار القوائم والطباعة بجانب بعض -->
 <div class="top-buttons">
@@ -748,11 +754,26 @@ document.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") applyRotation(currentRotation - 10); // تدوير يسار
   if (e.key === "ArrowRight") applyRotation(currentRotation + 10); // تدوير يمين
 });
+// -------------------------------------------------
+// أزرار الصفحة الرئيسية وتسجيل الخروج
+// -------------------------------------------------
+
+// إعادة التوجيه للداشبورد عند الضغط على "الرئيسية"
+document.getElementById("homeBtn").addEventListener("click", () => {
+  window.location.href = "dashboard.html"; // رابط لوحة التحكم
+});
+
+// تسجيل الخروج
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  localStorage.removeItem("loggedUser");
+  window.location.href = "index.html"; // الصفحة الرئيسية العامة
+});
 
 
 </script>
 </body>
 </html>
+
 
 
 
