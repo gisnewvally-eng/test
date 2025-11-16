@@ -6,19 +6,74 @@
 <title>Dashboard - جهاز معلومات شبكات المرافق</title>
 <style>
 body { margin:0; font-family:sans-serif; direction:rtl; }
-header { background:#004b8d; color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; }
+
+/* الهيدر بارز فوق كل شيء */
+header {
+  background:#004b8d;
+  color:white;
+  padding:15px 25px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position: fixed;
+  top:0;
+  left:0;
+  right:0;
+  z-index: 1001;
+}
 header span { font-weight:bold; }
-header a { color:white; text-decoration:none; margin-left:15px; }
-.sidebar { width:220px; background:#2c3e50; color:white; position:fixed; top:0; left:0; height:100%; padding:20px; }
+header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; z-index:1002; }
+
+/* القائمة الجانبية */
+.sidebar {
+  width:220px;
+  background:#2c3e50;
+  color:white;
+  position:fixed;
+  top:70px; /* بعد الهيدر */
+  left:0;
+  height:calc(100% - 70px); /* لا تشمل الهيدر */
+  padding:20px;
+  overflow-y:auto;
+}
 .sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; }
 .sidebar a:hover { background:#34495e; padding-left:5px; }
-.main-content { margin-left:240px; padding:30px; }
+
+/* المحتوى الرئيسي */
+.main-content {
+  margin-top: 70px; /* بعد الهيدر */
+  margin-left:240px;
+  padding:30px;
+}
+
+/* لوحة التحكم للادمن */
 #adminControl { margin-top:20px; }
 #adminControl input { width:70%; padding:8px; margin-right:5px; }
 #adminControl button { padding:8px; }
+
+/* بطاقات الصور */
 .image-card { display:inline-block; margin:10px; text-align:center; }
 .image-card img { width:150px; height:100px; object-fit:cover; display:block; }
 .image-card button { margin-top:5px; padding:5px; cursor:pointer; }
+
+/* Footer ثابت */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg,#00b09b,#96c93d);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 700;
+  padding: 6px 0;
+  z-index: 1000;
+}
+footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -45,11 +100,15 @@ header a { color:white; text-decoration:none; margin-left:15px; }
   <div id="adminControl" style="display:none;">
     <h3>إدارة الصور</h3>
     <input type="text" id="newImageURL" placeholder="رابط الصورة من الإنترنت">
-    <!-- رفع من الجهاز المحلي -->
     <input type="file" id="newImageFile" accept="image/*">
     <button id="addImageBtn">إضافة صورة</button>
   </div>
 </div>
+
+<footer>
+  إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
+  <span class="line2">Designed By Eng. Ahmed Labib </span>
+</footer>
 
 <script>
 // ------------------ بيانات المستخدم ------------------
@@ -83,7 +142,7 @@ document.getElementById("logoutLink").onclick = function(){
 };
 
 // ------------------ إعداد GitHub API ------------------
-const token = "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_GitHub"; // ضع التوكن الخاص بك هنا
+const token = "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_GitHub";
 const owner = "gisnewvally-eng";
 const repo = "test";
 const branch = "main";
@@ -116,17 +175,13 @@ document.getElementById("addImageBtn").onclick = async function(){
   const url = document.getElementById("newImageURL").value;
   const fileInput = document.getElementById("newImageFile");
 
-  // إذا اختار المستخدم رابط من الإنترنت
   if(url){
     const name = url.split("/").pop();
     const content = btoa(await (await fetch(url)).arrayBuffer());
     try {
       const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
         method: "PUT",
-        headers: {
-          "Authorization": `token ${token}`,
-          "Content-Type": "application/json"
-        },
+        headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
         body: JSON.stringify({ message: `Add image ${name}`, content: content, branch: branch })
       });
       const data = await res.json();
@@ -138,7 +193,6 @@ document.getElementById("addImageBtn").onclick = async function(){
     return;
   }
 
-  // إذا اختار المستخدم صورة من الجهاز المحلي
   if(fileInput.files.length > 0){
     const file = fileInput.files[0];
     const name = file.name;
@@ -148,10 +202,7 @@ document.getElementById("addImageBtn").onclick = async function(){
       try {
         const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
           method: "PUT",
-          headers: {
-            "Authorization": `token ${token}`,
-            "Content-Type": "application/json"
-          },
+          headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
           body: JSON.stringify({ message: `Add image ${name}`, content: base64Data, branch: branch })
         });
         const data = await res.json();
@@ -168,12 +219,10 @@ document.getElementById("addImageBtn").onclick = async function(){
   alert("اختر صورة من الإنترنت أو من جهازك أولاً");
 };
 
-
 // ------------------ حذف صورة ------------------
 async function deleteImage(name){
   if(!confirm("هل تريد حذف هذه الصورة؟")) return;
   try {
-    // أولاً الحصول على SHA للملف
     const resSha = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}?ref=${branch}`, {
       headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
     });
@@ -194,5 +243,3 @@ async function deleteImage(name){
 
 </body>
 </html>
-
-
