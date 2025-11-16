@@ -1,0 +1,4 @@
+{
+  "type" : "FeatureCollection",
+  "features" : [{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[30.5746136326858,25.480226785209357]},"properties":{"OBJECTID":1,"name":"محطة رفع","fcode":"504"}}]
+}

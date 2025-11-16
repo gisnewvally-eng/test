@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تسجيل الدخول</title>
+  <script src="assets/js/auth.js"></script>
+  <style>
+    body { display: flex; justify-content: center; align-items: center; height: 100vh; font-family: Arial; }
+    .box { padding: 30px; background: #fff; width: 300px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    input, button { width: 100%; padding: 12px; margin-top: 10px; }
+    button { background: #2c3e50; color: white; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>تسجيل الدخول</h2>
+    <input type="text" placeholder="اسم المستخدم" id="user">
+    <input type="password" placeholder="كلمة المرور" id="pass">
+    <button onclick="login()">دخول</button>
+  </div>
+
+</body>
+</html>

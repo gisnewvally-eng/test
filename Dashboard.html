@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard - جهاز معلومات شبكات المرافق</title>
+<style>
+  body { margin:0; font-family:sans-serif; direction:rtl; }
+  header { background:#004b8d; color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; }
+  header span { font-weight:bold; }
+  header a { color:white; text-decoration:none; margin-left:15px; }
+  .sidebar { width:220px; background:#2c3e50; color:white; position:fixed; top:0; left:0; height:100%; padding:20px; }
+  .sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; }
+  .sidebar a:hover { background:#34495e; padding-left:5px; }
+  .main-content { margin-left:240px; padding:30px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>مرحبا، <span id="userName"></span></div>
+  <nav>
+    <a href="#" id="logoutLink">تسجيل الخروج</a>
+  </nav>
+</header>
+
+<div class="sidebar">
+  <a id="adminMenu" href="#">لوحة التحكم (Admin)</a>
+  <a id="userMenu" href="#">صفحات المستخدم</a>
+  <a id="guestMenu" href="#">صفحة الضيف</a>
+  <a href="Government-Departments-Complex.html">صفحة الخريطة الرئيسية</a>
+</div>
+
+<div class="main-content">
+  <h2>لوحة التحكم</h2>
+  <p>يمكنك هنا عرض البيانات والمحتوى حسب الصلاحية.</p>
+</div>
+
+<script>
+// التحقق من تسجيل الدخول
+let sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
+if(!sessionUser){
+    alert("يجب تسجيل الدخول أولاً");
+    window.location.href = "index.html";
+}
+
+// عرض اسم المستخدم
+document.getElementById("userName").innerText = sessionUser.username;
+
+// التحكم في ظهور القوائم حسب الصلاحية
+if(sessionUser.role === "admin"){
+    document.getElementById("adminMenu").style.display = "block";
+    document.getElementById("userMenu").style.display = "block";
+    document.getElementById("guestMenu").style.display = "block";
+} else if(sessionUser.role === "user"){
+    document.getElementById("adminMenu").style.display = "none";
+    document.getElementById("userMenu").style.display = "block";
+    document.getElementById("guestMenu").style.display = "block";
+} else if(sessionUser.role === "guest"){
+    document.getElementById("adminMenu").style.display = "none";
+    document.getElementById("userMenu").style.display = "none";
+    document.getElementById("guestMenu").style.display = "block";
+}
+
+// تسجيل الخروج
+document.getElementById("logoutLink").onclick = function(){
+    localStorage.removeItem("loggedUser");
+    window.location.href = "index.html";
+};
+</script>
+
+</body>
+</html>
