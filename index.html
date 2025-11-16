@@ -5,6 +5,50 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>الصفحة الرئيسية - جهاز معلومات شبكات المرافق والتخطيط العمراني</title>
 <style>
+  header {
+  background: linear-gradient(90deg, #26D0CE, #1A2980);
+  color: white;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: flex-end; /* لبدء النص من اليمين */
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  text-align: right;
+}
+.content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.4); /* خلفية شبه شفافة */
+  color: #fff;
+  padding: 20px 40px;
+  border-radius: 12px;
+  max-width: 90%;
+}
+
+.login-btn {
+  display: inline-block;
+  background: #ffcc00;
+  color: #000;
+  padding: 12px 25px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+  margin-top: 15px;
+  transition: 0.3s;
+}
+
+.login-btn:hover {
+  background: #e6b800;
+  transform: scale(1.05);
+}
+
 .hero-slider {
   width: 100%;
   height: 50vh;
@@ -109,7 +153,7 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(90deg,#00b09b,#96c93d);
+  background: linear-gradient(90deg, #26D0CE, #1A2980);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -213,6 +257,7 @@ slider.addEventListener("touchend", e => {
 
 </body>
 </html>
+
 
 
 
