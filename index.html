@@ -7,8 +7,10 @@
 <style>
   header {
   display: flex;
-  justify-content: space-between; /* المسافة بين اليمين واليسار */
+  flex-direction: row;       /* ترتيب أفقي */
+  justify-content: space-between; /* المسافة بين الجهتين */
   align-items: center;
+  direction: ltr;            /* لضبط Flexbox بغض النظر عن RTL للصفحة */
   padding: 15px 25px;
   background: linear-gradient(90deg, #26D0CE, #1A2980);
   color: white;
@@ -139,7 +141,19 @@
 
 header span { font-weight:bold; }
 header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; z-index:1002; }
+/* متجاوب للموبايل */
+@media (max-width: 768px) {
+  .logo-text { font-size: 16px; }
+  .header-logo { height: 40px; width: 40px; }
+  .user-dashboard { padding: 6px 12px; font-size: 14px; }
+}
 
+@media (max-width: 480px) {
+  header { padding: 10px 15px; }
+  .logo-text { font-size: 14px; }
+  .header-logo { height: 35px; width: 35px; }
+  .user-dashboard { padding: 5px 10px; font-size: 13px; }
+}
 /* أزرار السلايدر */
 .hero-slider button.prev-slide,
 .hero-slider button.next-slide {
@@ -321,6 +335,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+
 
 
 
