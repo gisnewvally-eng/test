@@ -278,8 +278,8 @@ slider.addEventListener("touchend", e => {
 });
 // عرض زر "صفحة المستخدم" إذا كان المستخدم مسجلاً دخول
 document.addEventListener("DOMContentLoaded", function() {
-  const loggedIn = localStorage.getItem("isLoggedIn"); // "true" عند تسجيل الدخول
-  if(loggedIn === "true") {
+  const loggedUser = localStorage.getItem("loggedUser");
+  if(loggedUser) {
     document.getElementById("userDashboardBtn").style.display = "inline-block";
   }
 });
@@ -289,6 +289,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+
 
 
 
