@@ -19,6 +19,16 @@
   z-index: 1001;
   text-align: right;
 }
+  .logo-bg {
+  background: #ffffff;       /* دائرة بيضاء */
+  padding: 8px;              /* مساحة داخلية لتظهر الدائرة */
+  border-radius: 50%;        /* يجعل الخلفية دائرية */
+  height: 45px;              /* نفس ارتفاع اللوجو */
+  width: 45px;               /* عرض مساوي للارتفاع ليصبح الشكل دائرياً */
+  object-fit: contain;       /* يحافظ على شكل الصورة داخل الدائرة */
+  box-shadow: 0 0 6px rgba(0,0,0,0.2); /* ظل خفيف - اختياري */
+}
+
   .header-logo {
   height: 45px;        /* مقاس مناسب للهيدر */
   margin-left: 15px;   /* مسافة بسيطة بين اللوجو والنص */
@@ -167,8 +177,9 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 <body>
 
 <header>
-  <img src="assets/images/logo.png" class="header-logo" alt="Logo">
   <div class="logo">جهاز معلومات شبكات المرافق والتخطيط العمراني</div>
+  <img src="assets/images/logo.png" class="header-logo logo-bg" alt="Logo">
+
 </header>
 
 <!-- سلايدر الصور -->
@@ -253,6 +264,7 @@ slider.addEventListener("touchend", e => {
 
 </body>
 </html>
+
 
 
 
