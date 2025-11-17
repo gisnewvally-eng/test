@@ -26,7 +26,10 @@
   align-items: center;
   gap: 10px; /* المسافة بين اللوجو والنص */
 }
-
+.header-left {
+  display: flex;
+  align-items: center;
+}
 .logo-text {
   font-weight: bold;
   font-size: 18px;
@@ -235,15 +238,18 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 <body>
 
 <header>
- 
+  <!-- جهة اليمين: اللوجو والنص -->
   <div class="header-right">
     <img src="assets/images/logo.png" class="header-logo logo-bg" alt="Logo">
     <div class="logo-text">جهاز معلومات شبكات المرافق والتخطيط العمراني</div>
   </div>
 
-  <!-- زر صفحة المستخدم -->
-  <a href="dashboard.html" class="user-dashboard" id="userDashboardBtn">صفحة المستخدم</a>
+  <!-- جهة اليسار: زر المستخدم -->
+  <div class="header-left">
+    <a href="dashboard.html" class="user-dashboard" id="userDashboardBtn">صفحة المستخدم</a>
+  </div>
 </header>
+
 
 
 <!-- سلايدر الصور -->
@@ -335,6 +341,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+
 
 
 
