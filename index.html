@@ -6,19 +6,45 @@
 <title>الصفحة الرئيسية - جهاز معلومات شبكات المرافق والتخطيط العمراني</title>
 <style>
   header {
+  display: flex;
+  justify-content: space-between; /* المسافة بين اليمين واليسار */
+  align-items: center;
+  padding: 15px 25px;
   background: linear-gradient(90deg, #26D0CE, #1A2980);
   color: white;
-  padding: 15px 25px;
-  display: flex;
-  justify-content: flex-end; /* لبدء النص من اليمين */
-  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 1001;
-  text-align: right;
 }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* المسافة بين اللوجو والنص */
+}
+
+.logo-text {
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.user-dashboard {
+  display: none; /* يظهر فقط بعد تسجيل الدخول */
+  color: white;
+  background: #26d0ce;
+  padding: 8px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.user-dashboard:hover {
+  background: #1a2980;
+}
+
   .logo-bg {
   background: #ffffff;       /* دائرة بيضاء */
   padding: 8px;              /* مساحة داخلية لتظهر الدائرة */
@@ -289,6 +315,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 </body>
 </html>
+
 
 
 
