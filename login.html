@@ -22,67 +22,48 @@
 
     /* صندوق تسجيل الدخول */
     .box {
-      position: relative;
-      padding: 50px 25px 25px 25px;
+      position: relative; 
+      padding: 60px 30px 30px 30px; /* زيادة padding أعلى لإتاحة مكان للوجو */
       background: #fff;
       width: 350px;
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-      transition: 0.3s;
       text-align: center;
+      transition: 0.3s;
     }
 
     .box:hover { transform: translateY(-3px); }
 
-    /* اللوجو في الزاوية اليمنى */
-    .logo-corner {
+    /* اللوجو بالكامل داخل المربع */
+    .login-logo {
       position: absolute;
-      top: -20px;
-      right: -20px;
-      width: 65px;
-      height: 65px;
+      top: 10px;      /* داخل المربع */
+      right: 10px;    /* داخل المربع */
+      width: 50px;
+      height: 50px;
+      background: #fff; 
+      padding: 5px;
+      border-radius: 50%;
       object-fit: contain;
+      box-shadow: 0 0 6px rgba(0,0,0,0.2);
     }
-.box {
-  position: relative; /* مهم لربط اللوجو بالمربع */
-  padding: 40px 30px 30px;
-  background: #fff;
-  width: 300px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  text-align: center;
-}
 
-.login-logo {
-  position: absolute;
-  top: -25px;      /* يرفع اللوجو لأعلى داخل حدود المربع */
-  right: -25px;    /* أو left لو تريد الجانب الأيسر */
-  width: 60px;     /* حجم اللوجو */
-  height: 60px;
-  background: #fff; 
-  padding: 8px;
-  border-radius: 50%;
-  object-fit: contain;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
-}
-
-    /* سهم الرجوع في الزاوية اليسرى */
+    /* سهم الرجوع في الزاوية المقابلة */
     .back-arrow {
       position: absolute;
-      top: 5px;
-      left: 5px;
-      font-size: 26px;
+      top: 10px;
+      left: 10px;
+      font-size: 24px;
       color: #1a2980;
       cursor: pointer;
       text-decoration: none;
       transition: 0.2s;
     }
 
-    .back-arrow:hover {
-      opacity: 0.7;
-    }
+    .back-arrow:hover { opacity: 0.7; }
 
     h2 {
+      margin-top: 20px;
       margin-bottom: 20px;
       color: #1a2980;
       font-weight: bold;
@@ -104,7 +85,6 @@
       box-shadow: 0 0 5px rgba(26, 41, 128, 0.4);
     }
 
-    /* زر التدرج */
     button {
       width: 100%;
       padding: 12px;
@@ -122,35 +102,20 @@
 
     /* تصميم متجاوب */
     @media (max-width: 400px) {
-      .box {
-        width: 90%;
-        padding: 45px 20px 20px;
-      }
-
-      .logo-corner {
-        width: 55px;
-        height: 55px;
-        top: -15px;
-        right: -15px;
-      }
-
-      .back-arrow {
-        font-size: 24px;
-      }
+      .box { width: 90%; padding: 70px 20px 20px; }
+      .login-logo { width: 45px; height: 45px; top: 10px; right: 10px; }
+      .back-arrow { font-size: 22px; top: 10px; left: 10px; }
     }
   </style>
-
 </head>
 <body>
 
-  <!-- مربع تسجيل الدخول -->
   <div class="box">
-
     <!-- سهم الرجوع -->
     <a href="index.html" class="back-arrow">↩</a>
 
-    <!-- اللوجو -->
-    <img src="assets/images/logo.png" class="login-logo">
+    <!-- اللوجو داخل المربع بالكامل -->
+    <img src="assets/images/logo.png" class="login-logo" alt="Logo">
 
     <h2>تسجيل الدخول</h2>
 
@@ -171,4 +136,3 @@
 
 </body>
 </html>
-
