@@ -43,6 +43,28 @@
       height: 65px;
       object-fit: contain;
     }
+.box {
+  position: relative; /* مهم لربط اللوجو بالمربع */
+  padding: 40px 30px 30px;
+  background: #fff;
+  width: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.login-logo {
+  position: absolute;
+  top: -25px;      /* يرفع اللوجو لأعلى داخل حدود المربع */
+  right: -25px;    /* أو left لو تريد الجانب الأيسر */
+  width: 60px;     /* حجم اللوجو */
+  height: 60px;
+  background: #fff; 
+  padding: 8px;
+  border-radius: 50%;
+  object-fit: contain;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}
 
     /* سهم الرجوع في الزاوية اليسرى */
     .back-arrow {
@@ -128,7 +150,7 @@
     <a href="index.html" class="back-arrow">↩</a>
 
     <!-- اللوجو -->
-    <img src="logo.png" class="logo-corner" alt="Logo">
+    <img src="assets/images/logo.png" class="login-logo">
 
     <h2>تسجيل الدخول</h2>
 
@@ -149,3 +171,4 @@
 
 </body>
 </html>
+
