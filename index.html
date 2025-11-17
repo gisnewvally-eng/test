@@ -152,6 +152,23 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
   transition: background 0.3s;
 }
 .slide-dots span.active { background: #ffcc00; }
+  
+.user-dashboard {
+  display: none; /* افتراضيًا مخفي */
+  margin-left: auto; /* جهة اليسار */
+  color: white;
+  background: #26d0ce;
+  padding: 8px 15px;
+  border-radius: 6px;
+  text-decoration: none;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.user-dashboard:hover {
+  background: #1a2980;
+  color: #fff;
+}
 
 
 /* Footer ثابت */
@@ -179,7 +196,8 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 <header>
   <div class="logo">جهاز معلومات شبكات المرافق والتخطيط العمراني</div>
   <img src="assets/images/logo.png" class="header-logo logo-bg" alt="Logo">
-
+<!-- زر صفحة المستخدم -->
+  <a href="dashboard.html" class="user-dashboard" id="userDashboardBtn">صفحة المستخدم</a>
 </header>
 
 <!-- سلايدر الصور -->
@@ -258,12 +276,20 @@ slider.addEventListener("touchend", e => {
   if(startX - endX > 50) goToSlide((currentSlide + 1) % slides.length); // سحب يسار
   setInterval(showNextSlide, 10000);
 });
+// عرض زر "صفحة المستخدم" إذا كان المستخدم مسجلاً دخول
+document.addEventListener("DOMContentLoaded", function() {
+  const loggedIn = localStorage.getItem("isLoggedIn"); // "true" عند تسجيل الدخول
+  if(loggedIn === "true") {
+    document.getElementById("userDashboardBtn").style.display = "inline-block";
+  }
+});
 
 
 </script>
 
 </body>
 </html>
+
 
 
 
