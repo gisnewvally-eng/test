@@ -7,9 +7,7 @@
   <script src="assets/js/auth.js"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -22,21 +20,47 @@
       font-family: "Arial", sans-serif;
     }
 
+    /* صندوق تسجيل الدخول */
     .box {
-      padding: 25px;
+      position: relative;
+      padding: 50px 25px 25px 25px;
       background: #fff;
       width: 350px;
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.12);
       transition: 0.3s;
+      text-align: center;
     }
 
-    .box:hover {
-      transform: translateY(-3px);
+    .box:hover { transform: translateY(-3px); }
+
+    /* اللوجو في الزاوية اليمنى */
+    .logo-corner {
+      position: absolute;
+      top: -20px;
+      right: -20px;
+      width: 65px;
+      height: 65px;
+      object-fit: contain;
+    }
+
+    /* سهم الرجوع في الزاوية اليسرى */
+    .back-arrow {
+      position: absolute;
+      top: 5px;
+      left: 5px;
+      font-size: 26px;
+      color: #1a2980;
+      cursor: pointer;
+      text-decoration: none;
+      transition: 0.2s;
+    }
+
+    .back-arrow:hover {
+      opacity: 0.7;
     }
 
     h2 {
-      text-align: center;
       margin-bottom: 20px;
       color: #1a2980;
       font-weight: bold;
@@ -58,7 +82,7 @@
       box-shadow: 0 0 5px rgba(26, 41, 128, 0.4);
     }
 
-    /* زر الدخول بتدرج لوني */
+    /* زر التدرج */
     button {
       width: 100%;
       padding: 12px;
@@ -72,15 +96,24 @@
       transition: 0.2s;
     }
 
-    button:hover {
-      opacity: 0.9;
-    }
+    button:hover { opacity: 0.9; }
 
     /* تصميم متجاوب */
     @media (max-width: 400px) {
       .box {
         width: 90%;
-        padding: 20px;
+        padding: 45px 20px 20px;
+      }
+
+      .logo-corner {
+        width: 55px;
+        height: 55px;
+        top: -15px;
+        right: -15px;
+      }
+
+      .back-arrow {
+        font-size: 24px;
       }
     }
   </style>
@@ -88,7 +121,15 @@
 </head>
 <body>
 
+  <!-- مربع تسجيل الدخول -->
   <div class="box">
+
+    <!-- سهم الرجوع -->
+    <a href="index.html" class="back-arrow">↩</a>
+
+    <!-- اللوجو -->
+    <img src="logo.png" class="logo-corner" alt="Logo">
+
     <h2>تسجيل الدخول</h2>
 
     <input type="text" placeholder="اسم المستخدم" id="user">
@@ -98,7 +139,7 @@
   </div>
 
   <script>
-    // تشغيل تسجيل الدخول عند ضغط Enter
+    // تشغيل تسجيل الدخول عند الضغط على Enter
     document.addEventListener("keypress", function(e) {
       if (e.key === "Enter") {
         document.getElementById("loginBtn").click();
