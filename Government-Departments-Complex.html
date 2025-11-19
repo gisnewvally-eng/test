@@ -1,9 +1,5 @@
 <!DOCTYPE html>
 <html lang="ar">
-let sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
-if(!sessionUser){ window.location.href = "index.html"; }
-const allowedRoles = ["admin","user"];
-if(!allowedRoles.includes(sessionUser.role)){ window.location.href = "index.html"; }
 
 <head>
 <meta charset="utf-8" />
@@ -13,6 +9,24 @@ if(!allowedRoles.includes(sessionUser.role)){ window.location.href = "index.html
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="assets/js/auth.js"></script>
+<script>
+try {
+  const sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
+  if (!sessionUser) {
+    window.location.href = "index.html";
+  } else {
+    const allowedRoles = ["admin", "user"];
+    if (!allowedRoles.includes(sessionUser.role)) {
+      window.location.href = "index.html";
+    }
+  }
+} catch (err) {
+  // إذا كانت القيمة غير قابلة للـ JSON أو حدث خطأ آخر
+  console.error('session check error:', err);
+  window.location.href = "index.html";
+}
+</script>
+
 <script> protectPage(); </script>
 
 <style>
@@ -794,6 +808,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 </script>
 </body>
 </html>
+
 
 
 
