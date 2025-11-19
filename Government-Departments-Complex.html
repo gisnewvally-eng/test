@@ -339,12 +339,18 @@ footer .line2 {
 
   /* Responsive */
   @media (max-width:900px){
-    :root{ --sidebar-width:85vw; }
-    #sidebar{ width:85vw; left: auto; right:0; }
+    :root{ --sidebar-width:75vw; }
+    #sidebar{ width:75vw; left: auto; right:0; }
     #toggleSidebar{ right:8px; top: calc(var(--header-height)+8px); }
     header img.logo{ height:44px; }
     header h1{ font-size:16px; }
   }
+  /* ضيق أكثر للقائمة الجانبية في الجوال */
+@media (max-width:600px){
+  :root { --sidebar-width:60vw; } /* تعديل العرض */
+  #sidebar{ width: var(--sidebar-width); }
+}
+
   @media (max-width:480px){
     #map{ height:70vh; }
     #sidebar{ height:70vh; top:var(--header-height); }
@@ -850,6 +856,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 </script>
 </body>
 </html>
+
 
 
 
