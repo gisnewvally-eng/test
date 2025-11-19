@@ -4,12 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard - جهاز معلومات شبكات المرافق</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 body { margin:0; font-family:sans-serif; direction:rtl; }
 
 /* الهيدر */
 header {
-  background: linear-gradient(90deg,#0575E6,#00F260);
+  background: linear-gradient(90deg,#00F260,#0575E6);
   color:white;
   padding:15px 25px;
   display:flex;
@@ -71,7 +72,7 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(90deg,#0575E6,#00F260);
+  background: linear-gradient(90deg,#00F260,#0575E6);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -141,10 +142,10 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
   </div>
 
   <!-- شارت الزيارات -->
-  <div id="visitsControl" style="display:none;">
-    <h3>زيارات المستخدمين</h3>
-    <canvas id="visitsChart"></canvas>
-  </div>
+<div id="visitsControl" style="display:none;">
+  <h3 id="visitsSectionTitle">زيارات المستخدمين</h3>
+  <canvas id="visitsChart"></canvas>
+</div>
 
 </div>
 
@@ -164,7 +165,36 @@ if(!sessionUser){
 }
 document.getElementById("userName").innerText = sessionUser.username;
 
-// ====== التحكم في ظهور القوائم ======
+// ====== المستخدمين الافتراضيين ======
+const defaultUsers = [
+  { username: "admin", password: "1234", role: "admin" },
+  { username: "user1", password: "1111", role: "user" },
+  { username: "guest", password: "0000", role: "guest" }
+];
+
+const accountsKey = "siteUsers";
+if(!localStorage.getItem(accountsKey)){
+  localStorage.setItem(accountsKey, JSON.stringify(defaultUsers));
+}
+
+// ====== سجل زيارات المستخدمين ======
+if(!localStorage.getItem("userVisits")){
+  const allUsers = JSON.parse(localStorage.getItem(accountsKey)) || defaultUsers;
+  let visits = {};
+  allUsers.forEach(u => visits[u.username] = 0);
+  localStorage.setItem("userVisits", JSON.stringify(visits));
+}
+
+// زيادة عدد زيارات المستخدم الحالي
+let allVisits = JSON.parse(localStorage.getItem("userVisits"));
+if(allVisits[sessionUser.username] !== undefined){
+    allVisits[sessionUser.username] += 1;
+}else{
+    allVisits[sessionUser.username] = 1; // مستخدم جديد
+}
+localStorage.setItem("userVisits", JSON.stringify(allVisits));
+
+// ====== التحكم في القوائم حسب الدور ======
 if(sessionUser.role === "admin"){
   document.getElementById("adminMenu").style.display = "block";
   document.getElementById("userMenu").style.display = "block";
@@ -182,7 +212,7 @@ if(sessionUser.role === "admin"){
   document.getElementById("guestMenu").style.display = "block";
 }
 
-// تسجيل الخروج
+// ====== تسجيل الخروج ======
 document.getElementById("logoutLink").onclick = function(){
   localStorage.removeItem("loggedUser");
   window.location.href = "index.html";
@@ -221,6 +251,7 @@ loadImages();
 document.getElementById("addImageBtn").onclick = async function(){
   const url = document.getElementById("newImageURL").value;
   const fileInput = document.getElementById("newImageFile");
+
   if(url){
     const name = url.split("/").pop();
     const content = btoa(await (await fetch(url)).arrayBuffer());
@@ -236,6 +267,7 @@ document.getElementById("addImageBtn").onclick = async function(){
     } catch(err){ console.error(err); }
     return;
   }
+
   if(fileInput.files.length > 0){
     const file = fileInput.files[0];
     const name = file.name;
@@ -284,25 +316,31 @@ const ctx = document.getElementById('visitsChart').getContext('2d');
 const visitsChart = new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: ['Admin', 'User1', 'Guest'],
+        labels: [],
         datasets: [{
             label: 'عدد الزيارات',
-            data: [12, 19, 7],
-            backgroundColor: ['#004b8d','#2c3e50','#96c93d']
+            data: [],
+            backgroundColor: []
         }]
     }
 });
 
-// ====== إدارة الحسابات ======
-const accountsKey = "siteUsers"; 
-const defaultUsers = [
-  { username: "admin", password: "1234", role: "admin" },
-  { username: "user1", password: "1111", role: "user" },
-  { username: "guest", password: "0000", role: "guest" }
-];
-if(!localStorage.getItem(accountsKey)){
-  localStorage.setItem(accountsKey, JSON.stringify(defaultUsers));
+function updateVisitsChart() {
+    const visitsData = JSON.parse(localStorage.getItem("userVisits")) || {};
+    const labels = Object.keys(visitsData);
+    const dataValues = Object.values(visitsData);
+    visitsChart.data.labels = labels;
+    visitsChart.data.datasets[0].data = dataValues;
+    visitsChart.data.datasets[0].backgroundColor = labels.map(label => {
+        if(label.toLowerCase() === 'admin') return '#004b8d';
+        if(label.toLowerCase() === 'guest') return '#96c93d';
+        return '#2c3e50';
+    });
+    visitsChart.update();
 }
+updateVisitsChart();
+
+// ====== إدارة الحسابات ======
 
 // تحميل وعرض المستخدمين
 function loadUsers() {
@@ -336,18 +374,35 @@ document.getElementById("addUserBtn").onclick = function(){
 
   allUsers.push({username, password, role});
   localStorage.setItem(accountsKey, JSON.stringify(allUsers));
+
+  // إضافة سجل زيارات جديد
+  let visits = JSON.parse(localStorage.getItem("userVisits")) || {};
+  visits[username] = 0;
+  localStorage.setItem("userVisits", JSON.stringify(visits));
+
   document.getElementById("newUsername").value = "";
   document.getElementById("newPassword").value = "";
+
   loadUsers();
+  updateVisitsChart();
 };
 
 // حذف مستخدم
 function deleteUser(index){
   if(!confirm("هل تريد حذف هذا المستخدم؟")) return;
   const allUsers = JSON.parse(localStorage.getItem(accountsKey));
+  const usernameToDelete = allUsers[index].username;
+
   allUsers.splice(index,1);
   localStorage.setItem(accountsKey, JSON.stringify(allUsers));
+
+  // حذف سجل زيارات المستخدم
+  let visits = JSON.parse(localStorage.getItem("userVisits")) || {};
+  delete visits[usernameToDelete];
+  localStorage.setItem("userVisits", JSON.stringify(visits));
+
   loadUsers();
+  updateVisitsChart();
 }
 
 // تغيير كلمة المرور
@@ -360,6 +415,9 @@ function changePassword(index){
     loadUsers();
   }
 }
+
 </script>
+
 </body>
 </html>
+
