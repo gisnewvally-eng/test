@@ -39,6 +39,27 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
 }
 .sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; }
 .sidebar a:hover { background:#34495e; padding-left:5px; }
+/* السايدبار يتحرك عند الإخفاء */
+.sidebar {
+  transition: transform 0.3s ease;
+}
+
+/* اخفاء السايدبار */
+.sidebar.hidden {
+  transform: translateX(-250px); /* إخفاء خارج الشاشة */
+}
+
+/* زر الساندويتش يظهر فقط على الجوال */
+#hamburger {
+  display: block;
+}
+
+/* اخفاء زر الساندويتش على الشاشات الكبيرة */
+@media (min-width: 768px) {
+  #hamburger {
+    display: none;
+  }
+}
 
 /* المحتوى الرئيسي */
 .main-content {
@@ -65,6 +86,12 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
 
 /* شارت الزيارات */
 #visitsChart { width:100%; max-width:600px; height:300px; }
+.main-content {
+  margin-top: 70px;
+  margin-left: 240px;
+  padding: 30px;
+  padding-bottom: 60px; /* نفس ارتفاع الفوتر أو أكثر قليلاً */
+}
 
 /* Footer ثابت */
 footer {
@@ -102,6 +129,9 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 
 <header>
   <div>مرحبا، <span id="userName"></span></div>
+  <!-- زر الساندويتش -->
+<div id="hamburger" style="cursor:pointer; font-size:24px; margin-left:15px;">&#9776;</div>
+
   <nav>
     <a href="#" id="logoutLink">تسجيل الخروج</a>
   </nav>
@@ -157,6 +187,19 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="assets/js/auth.js"></script>
 <script>
+  const hamburger = document.getElementById("hamburger");
+const sidebar = document.querySelector(".sidebar");
+
+hamburger.onclick = function() {
+  sidebar.classList.toggle("hidden"); // إخفاء أو إظهار السايدبار
+  // تحويل رمز الساندويتش إلى × عند الفتح
+  if(sidebar.classList.contains("hidden")){
+    hamburger.innerHTML = "&#9776;"; // ☰
+  } else {
+    hamburger.innerHTML = "&times;"; // ×
+  }
+};
+
 // ====== بيانات المستخدم ======
 let sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
 if(!sessionUser){
@@ -420,4 +463,5 @@ function changePassword(index){
 
 </body>
 </html>
+
 
