@@ -48,18 +48,15 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
 .sidebar.hidden {
   transform: translateX(-250px); /* إخفاء خارج الشاشة */
 }
-
-/* زر الساندويتش يظهر فقط على الجوال */
-#hamburger {
-  display: block;
-}
-
-/* اخفاء زر الساندويتش على الشاشات الكبيرة */
-@media (min-width: 768px) {
-  #hamburger {
-    display: none;
+@media (max-width: 767px) {
+  .sidebar {
+    transform: translateX(-250px);
+  }
+  .main-content {
+    margin-left: 0;
   }
 }
+
 
 /* المحتوى الرئيسي */
 .main-content {
@@ -129,19 +126,18 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 
 <header>
   <div>مرحبا، <span id="userName"></span></div>
-  <!-- زر الساندويتش -->
-<div id="hamburger" style="cursor:pointer; font-size:24px; margin-left:15px;">&#9776;</div>
-
   <nav>
     <a href="#" id="logoutLink">تسجيل الخروج</a>
   </nav>
 </header>
 
 <div class="sidebar">
+    <!-- زر الساندويتش -->
+  <div id="hamburger" style="cursor:pointer; font-size:24px; margin-left:15px;">&#9776;</div>
   <a id="adminMenu" href="#">لوحة التحكم (Admin)</a>
   <a id="userMenu" href="#">صفحات المستخدم</a>
   <a id="guestMenu" href="#">صفحة الضيف</a>
-  <a href="Government-Departments-Complex.html">صفحة الخريطة الرئيسية</a>
+  <a href="Government-Departments-Complex.html">خريطة مجمع المصالح الحكومية</a>
 </div>
 
 <div class="main-content">
@@ -187,18 +183,19 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="assets/js/auth.js"></script>
 <script>
-  const hamburger = document.getElementById("hamburger");
+  //======= زر السايد بار ======
+const hamburger = document.getElementById("hamburger");
 const sidebar = document.querySelector(".sidebar");
 
 hamburger.onclick = function() {
   sidebar.classList.toggle("hidden"); // إخفاء أو إظهار السايدبار
-  // تحويل رمز الساندويتش إلى × عند الفتح
   if(sidebar.classList.contains("hidden")){
     hamburger.innerHTML = "&#9776;"; // ☰
   } else {
     hamburger.innerHTML = "&times;"; // ×
   }
 };
+
 
 // ====== بيانات المستخدم ======
 let sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
@@ -463,5 +460,6 @@ function changePassword(index){
 
 </body>
 </html>
+
 
 
