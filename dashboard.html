@@ -9,7 +9,7 @@ body { margin:0; font-family:sans-serif; direction:rtl; }
 
 /* الهيدر */
 header {
-  background:#004b8d;
+  background: linear-gradient(90deg,#0575E6,#00F260);
   color:white;
   padding:15px 25px;
   display:flex;
@@ -47,15 +47,15 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
 }
 
 /* لوحة التحكم للادمن */
-#adminControl, #accountControl, #visitsControl {
+#adminControl, #visitsControl, #adminAccounts {
   margin-top:20px;
   padding:10px;
   border:1px solid #ccc;
   background:#f8f8f8;
   border-radius:5px;
 }
-#adminControl input, #accountControl input { width:70%; padding:8px; margin-right:5px; }
-#adminControl button, #accountControl button { padding:8px; margin-top:5px; cursor:pointer; }
+#adminControl input, #adminAccounts input, #adminAccounts select { width:70%; padding:8px; margin-right:5px; }
+#adminControl button, #adminAccounts button { padding:8px; margin-top:5px; cursor:pointer; }
 
 /* بطاقات الصور */
 .image-card { display:inline-block; margin:10px; text-align:center; }
@@ -71,7 +71,7 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  background: linear-gradient(90deg,#00b09b,#96c93d);
+  background: linear-gradient(90deg,#0575E6,#00F260);
   color: #fff;
   display: flex;
   flex-direction: column;
@@ -84,11 +84,6 @@ footer {
 }
 footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 
-  #adminAccounts input, #adminAccounts select {
-  padding: 6px;
-  margin-right: 5px;
-}
-
 #usersList div {
   margin: 5px 0;
   padding: 5px;
@@ -99,11 +94,7 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
   align-items: center;
 }
 
-#usersList button {
-  padding: 3px 6px;
-  cursor: pointer;
-}
-
+#usersList button { padding: 3px 6px; cursor: pointer; }
 </style>
 </head>
 <body>
@@ -125,51 +116,33 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 <div class="main-content">
   <h2>لوحة التحكم</h2>
   
-  <!-- واجهة Admin لإدارة الصور -->
+  <!-- إدارة الصور -->
   <div id="adminControl" style="display:none;">
-    <h3 id="imageSectionTitle">إدارة الصور</h3>
-    <!-- واجهة إدارة الحسابات -->
-  <div id="adminAccounts" style="display:none; margin-top:20px;">
-  <h3>إدارة الحسابات</h3>
-  
-  <!-- إضافة مستخدم جديد -->
-  <input type="text" id="newUsername" placeholder="اسم المستخدم">
-  <input type="password" id="newPassword" placeholder="كلمة المرور">
-  <select id="newRole">
-    <option value="admin">Admin</option>
-    <option value="user">User</option>
-    <option value="guest">Guest</option>
-  </select>
-  <button id="addUserBtn">إضافة مستخدم</button>
-
-  <!-- قائمة الحسابات -->
-  <h4>المستخدمون الحاليون</h4>
-  <div id="usersList"></div>
-</div>
-
+    <h3>إدارة الصور</h3>
     <input type="text" id="newImageURL" placeholder="رابط الصورة من الإنترنت">
     <input type="file" id="newImageFile" accept="image/*">
     <button id="addImageBtn">إضافة صورة</button>
     <div id="imagesContainer"></div>
   </div>
 
-  <!-- واجهة Admin لإدارة الحسابات -->
-  <div id="accountControl" style="display:none;">
-    <h3 id="accountSectionTitle">إدارة الحسابات</h3>
-    <input type="text" id="newUserName" placeholder="اسم المستخدم">
-    <input type="password" id="newUserPass" placeholder="كلمة المرور">
-    <select id="newUserRole">
+  <!-- إدارة الحسابات -->
+  <div id="adminAccounts" style="display:none;">
+    <h3>إدارة الحسابات</h3>
+    <input type="text" id="newUsername" placeholder="اسم المستخدم">
+    <input type="password" id="newPassword" placeholder="كلمة المرور">
+    <select id="newRole">
       <option value="admin">Admin</option>
       <option value="user">User</option>
       <option value="guest">Guest</option>
     </select>
-    <button id="createUserBtn">إنشاء حساب</button>
-    <div id="accountsList"></div>
+    <button id="addUserBtn">إضافة مستخدم</button>
+    <h4>المستخدمون الحاليون</h4>
+    <div id="usersList"></div>
   </div>
 
   <!-- شارت الزيارات -->
   <div id="visitsControl" style="display:none;">
-    <h3 id="visitsSectionTitle">زيارات المستخدمين</h3>
+    <h3>زيارات المستخدمين</h3>
     <canvas id="visitsChart"></canvas>
   </div>
 
@@ -180,10 +153,10 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
   <span class="line2">Designed By Eng. Ahmed Labib </span>
 </footer>
 
-<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="assets/js/auth.js"></script>
 <script>
+// ====== بيانات المستخدم ======
 let sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
 if(!sessionUser){
   alert("يجب تسجيل الدخول أولاً");
@@ -191,13 +164,13 @@ if(!sessionUser){
 }
 document.getElementById("userName").innerText = sessionUser.username;
 
-// التحكم في ظهور القوائم حسب الصلاحية
+// ====== التحكم في ظهور القوائم ======
 if(sessionUser.role === "admin"){
   document.getElementById("adminMenu").style.display = "block";
   document.getElementById("userMenu").style.display = "block";
   document.getElementById("guestMenu").style.display = "block";
   document.getElementById("adminControl").style.display = "block";
-  document.getElementById("accountControl").style.display = "block";
+  document.getElementById("adminAccounts").style.display = "block";
   document.getElementById("visitsControl").style.display = "block";
 }else if(sessionUser.role === "user"){
   document.getElementById("adminMenu").style.display = "none";
@@ -215,7 +188,98 @@ document.getElementById("logoutLink").onclick = function(){
   window.location.href = "index.html";
 };
 
-// ======= شارت الزيارات =======
+// ====== إعداد GitHub API للصور ======
+const token = "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";
+const owner = "gisnewvally-eng";
+const repo = "test";
+const branch = "main";
+const folder = "images";
+
+// تحميل الصور
+async function loadImages() {
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}?ref=${branch}`, {
+      headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+    });
+    const files = await res.json();
+    const container = document.getElementById("imagesContainer");
+    container.innerHTML = "";
+    files.forEach(file => {
+      const div = document.createElement("div");
+      div.className = "image-card";
+      div.innerHTML = `<img src="${file.download_url}" alt="">`;
+      if(sessionUser.role === "admin"){
+        div.innerHTML += `<button onclick="deleteImage('${file.name}')">حذف</button>`;
+      }
+      container.appendChild(div);
+    });
+  } catch(err){ console.error(err); }
+}
+loadImages();
+
+// إضافة صورة
+document.getElementById("addImageBtn").onclick = async function(){
+  const url = document.getElementById("newImageURL").value;
+  const fileInput = document.getElementById("newImageFile");
+  if(url){
+    const name = url.split("/").pop();
+    const content = btoa(await (await fetch(url)).arrayBuffer());
+    try {
+      const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
+        method: "PUT",
+        headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ message: `Add image ${name}`, content: content, branch: branch })
+      });
+      const data = await res.json();
+      if(data.content){ document.getElementById("newImageURL").value = ""; loadImages(); }
+      else alert("حدث خطأ أثناء الإضافة");
+    } catch(err){ console.error(err); }
+    return;
+  }
+  if(fileInput.files.length > 0){
+    const file = fileInput.files[0];
+    const name = file.name;
+    const reader = new FileReader();
+    reader.onloadend = async function() {
+      const base64Data = reader.result.split(',')[1];
+      try {
+        const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
+          method: "PUT",
+          headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ message: `Add image ${name}`, content: base64Data, branch: branch })
+        });
+        const data = await res.json();
+        if(data.content){ fileInput.value = ""; loadImages(); }
+        else alert("حدث خطأ أثناء الإضافة");
+      } catch(err){ console.error(err); }
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+  alert("اختر صورة من الإنترنت أو من جهازك أولاً");
+};
+
+// حذف صورة
+async function deleteImage(name){
+  if(!confirm("هل تريد حذف هذه الصورة؟")) return;
+  try {
+    const resSha = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}?ref=${branch}`, {
+      headers: { "Authorization": `token ${token}`, "Accept": "application/vnd.github.v3+json" }
+    });
+    const dataSha = await resSha.json();
+    if(!dataSha.sha){ alert("الملف غير موجود"); return; }
+    const resDel = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${folder}/${name}`, {
+      method: "DELETE",
+      headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ message: `Delete image ${name}`, sha: dataSha.sha, branch: branch })
+    });
+    const dataDel = await resDel.json();
+    if(dataDel.commit) loadImages();
+    else alert("حدث خطأ أثناء الحذف");
+  } catch(err){ console.error(err); }
+}
+
+// ====== شارت الزيارات ======
 const ctx = document.getElementById('visitsChart').getContext('2d');
 const visitsChart = new Chart(ctx, {
     type: 'bar',
@@ -228,20 +292,19 @@ const visitsChart = new Chart(ctx, {
         }]
     }
 });
-  // ------------------ إدارة الحسابات ------------------
-const accountsKey = "siteUsers"; // المفتاح في localStorage
 
-// تهيئة المستخدمين إذا لم يكن موجودين
+// ====== إدارة الحسابات ======
+const accountsKey = "siteUsers"; 
+const defaultUsers = [
+  { username: "admin", password: "1234", role: "admin" },
+  { username: "user1", password: "1111", role: "user" },
+  { username: "guest", password: "0000", role: "guest" }
+];
 if(!localStorage.getItem(accountsKey)){
-  localStorage.setItem(accountsKey, JSON.stringify(users));
+  localStorage.setItem(accountsKey, JSON.stringify(defaultUsers));
 }
 
-// اظهار واجهة الحسابات للادمن
-if(sessionUser.role === "admin"){
-  document.getElementById("adminAccounts").style.display = "block";
-}
-
-// تحميل الحسابات وعرضها
+// تحميل وعرض المستخدمين
 function loadUsers() {
   const userListDiv = document.getElementById("usersList");
   const allUsers = JSON.parse(localStorage.getItem(accountsKey));
@@ -273,7 +336,6 @@ document.getElementById("addUserBtn").onclick = function(){
 
   allUsers.push({username, password, role});
   localStorage.setItem(accountsKey, JSON.stringify(allUsers));
-
   document.getElementById("newUsername").value = "";
   document.getElementById("newPassword").value = "";
   loadUsers();
@@ -298,7 +360,6 @@ function changePassword(index){
     loadUsers();
   }
 }
-
 </script>
 </body>
 </html>
