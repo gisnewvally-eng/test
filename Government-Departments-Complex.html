@@ -390,6 +390,48 @@ body.dark-mode #map #northArrow {
   }
 }
 
+/* تنسيق أزرار الهيدر */
+.header-buttons {
+  position: absolute;
+  left: 20px; /* على الجهة اليسرى (rtl) */
+  top: 15px;
+  display: flex;
+  gap: 10px;
+  z-index: 2300;
+}
+
+/* تصغير الأزرار للجوال وتحويلها لأيقونات فقط */
+@media (max-width: 600px) {
+  .header-buttons {
+    position: relative;
+    top: 4px;
+    left: auto;
+    justify-content: center;
+    margin-top: 4px;
+  }
+  #homeBtn, #logoutBtn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    font-size: 0; /* اخفاء النص */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #homeBtn::before {
+    content: "🏠";
+    font-size: 20px;
+  }
+  #logoutBtn::before {
+    content: "🚪";
+    font-size: 20px;
+  }
+}
+
+/* إخفاء الأزرار عند الطباعة */
+@media print {
+  .header-buttons { display: none !important; }
+}
 
 </style>
 </head>
@@ -406,13 +448,13 @@ body.dark-mode #map #northArrow {
     </div>
   </div>
 
-  <!-- Header with logo on the right (RTL) -->
-  <header id="header">
+ <!-- Header with logo on the right (RTL) -->
+<header id="header">
   <img src="logo.png" class="logo" alt="شعار">
-  <h1>خريطة مرافق مجمع المصالح الحكومية بمحافظة الوادي الجديد</h1>
+  <h1>خريطة مرافق مجمع المصالح الحكومية<br> بمحافظة الوادي الجديد</h1>
 
   <!-- أزرار الصفحة الرئيسية وتسجيل الخروج -->
-  <div style="position:absolute; left:20px; top:15px; display:flex; gap:10px;">
+  <div class="header-buttons">
     <button id="homeBtn">🏠 الرئيسية</button>
     <button id="logoutBtn">🚪 تسجيل الخروج</button>
   </div>
@@ -808,6 +850,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 </script>
 </body>
 </html>
+
 
 
 
