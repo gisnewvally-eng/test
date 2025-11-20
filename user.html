@@ -64,7 +64,8 @@ function protectUser(){
   localStorage.setItem("userVisits", JSON.stringify(visits));
 
   updateUserChart();
-  renderUserMaps(const guestChk = document.createElement("input");
+  renderUserMaps();
+  const guestChk = document.createElement("input");
 guestChk.type = "checkbox";
 guestChk.checked = map.guestClickable || false;
 guestChk.onchange = e => {
@@ -81,7 +82,6 @@ const label = document.createElement("label");
 label.textContent = " السماح للضيف بالضغط";
 label.prepend(guestChk);
 div.appendChild(label);
-);
 }
 
 function saveGuestMessage(){
@@ -156,5 +156,6 @@ div.appendChild(label);
 </script>
 </body>
 </html>
+
 
 
