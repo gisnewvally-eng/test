@@ -6,36 +6,14 @@
 <title>لوحة الضيف</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="assets/js/auth.js"></script>
-
 <style>
-  body {
-    margin: 0;
-    font-family: sans-serif;
-    background: #f0f3f7;
-  }
-
-  header {
-    background: linear-gradient(90deg, #1a2980, #26d0ce);
-    color: #fff;
-    padding: 15px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .content {
-    padding: 20px;
-  }
-
-  .card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    margin-bottom: 25px;
-  }
+body { margin:0; font-family:sans-serif; background:#f0f3f7; }
+header { background: linear-gradient(90deg, #1a2980, #26d0ce); color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
+.content { padding:20px; }
+.card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:25px; }
+.map-card { background:#fff; border-radius:8px; padding:10px; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
+.map-card img { width:60px; height:60px; object-fit:contain; }
 </style>
-
 </head>
 <body onload="protectGuest()">
 
@@ -52,8 +30,13 @@
   </div>
 
   <div class="card">
-    <h3>إحصائية دخول الموقع</h3>
+    <h3>إحصائية زيارات المستخدمين</h3>
     <canvas id="guestChart"></canvas>
+  </div>
+
+  <div class="card">
+    <h3>الخرائط المسموح بها لك:</h3>
+    <div id="guestMaps"></div>
   </div>
 
 </div>
@@ -62,26 +45,51 @@
 function protectGuest(){
   const user = protectPage();
   if(!user) return;
+  if(user.role !== "guest"){ window.location.href="index.html"; }
 
-  if(user.role !== "guest"){
-    window.location.href = "index.html";
-  }
+  document.getElementById("guestMessage").innerText = localStorage.getItem("guest_message") || "لا توجد رسالة حالياً";
 
-  document.getElementById("guestMessage").innerText = 
-    localStorage.getItem("guest_message") || "لا توجد رسالة حالياً";
+  // تحديث زيارات الضيف
+  let visits = JSON.parse(localStorage.getItem("userVisits")) || {};
+  visits[user.username] = (visits[user.username]||0) + 1;
+  localStorage.setItem("userVisits", JSON.stringify(visits));
+
+  updateGuestChart();
+  renderGuestMaps();
 }
 
-new Chart(document.getElementById("guestChart"), {
-  type: "bar",
-  data: {
-    labels: ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس"],
-    datasets: [{
-      label: "عدد الزيارات",
-      data: [12, 19, 7, 14, 10]
-    }]
-  }
+// شارت الزيارات
+const ctx = document.getElementById("guestChart").getContext("2d");
+const guestChart = new Chart(ctx, {
+  type: 'bar',
+  data: { labels:[], datasets:[{ label:'عدد الزيارات', data:[], backgroundColor:[] }] },
 });
-</script>
+function updateGuestChart(){
+  const visits = JSON.parse(localStorage.getItem("userVisits")) || {};
+  guestChart.data.labels = Object.keys(visits);
+  guestChart.data.datasets[0].data = Object.values(visits);
+  guestChart.data.datasets[0].backgroundColor = Object.keys(visits).map(u=>{
+    if(u.toLowerCase()==='admin') return '#004b8d';
+    if(u.toLowerCase()==='guest') return '#96c93d';
+    return '#2c3e50';
+  });
+  guestChart.update();
+}
 
+// عرض الخرائط المسموح بها للضيف
+function renderGuestMaps(){
+  const maps = JSON.parse(localStorage.getItem("pagesList") || "[]");
+  const container = document.getElementById("guestMaps");
+  container.innerHTML = "";
+  maps.forEach(map=>{
+    if(map.roles && map.roles.includes("guest")){
+      const div = document.createElement("div");
+      div.className="map-card";
+      div.innerHTML = `<img src="${map.img}"><span>${map.name}</span>`;
+      container.appendChild(div);
+    }
+  });
+}
+</script>
 </body>
 </html>
