@@ -42,7 +42,10 @@ button.save { margin-top:10px; padding:10px 18px; background:#1a2980; color:whit
     <h3>إحصائية زيارات المستخدمين</h3>
     <canvas id="userChart"></canvas>
   </div>
-
+<div class="card">
+  <h3>أنواع الخرائط المتاحة:</h3>
+  <div id="mapTypeImages" style="display:flex; gap:15px; flex-wrap:wrap;"></div>
+</div>
   <div class="card">
     <h3>الخرائط المسموح بها لك:</h3>
     <div id="userMaps"></div>
@@ -110,7 +113,48 @@ function updateUserChart(){
   });
   userChart.update();
 }
+// عرض جميع أنواع الخرائط المخزنة في availableImages
+function renderMapTypes(){
+  // استدعاء من صفحة إدارة الخرائط إذا كانت موجودة
+  const availableImages = JSON.parse(localStorage.getItem("availableImages") || "{}");
 
+  const container = document.getElementById("mapTypeImages");
+  container.innerHTML = "";
+
+  // إذا لم توجد بيانات، استخدم الصور الافتراضية
+  const defaultImages = {
+    "سكنية": "assets/images/residential.png",
+    "صناعية": "assets/images/industrial.png",
+    "تجارية": "assets/images/commercial.png",
+    "خدمية": "assets/images/services.png"
+  };
+
+  const imagesToShow = Object.keys(availableImages).length ? availableImages : defaultImages;
+
+  Object.entries(imagesToShow).forEach(([name, src])=>{
+    const div = document.createElement("div");
+    div.style.textAlign = "center";
+    div.style.width = "80px";
+
+    const img = document.createElement("img");
+    img.src = src;
+    img.style.width = "80px";
+    img.style.height = "80px";
+    img.style.objectFit = "contain";
+    div.appendChild(img);
+
+    const label = document.createElement("div");
+    label.textContent = name;
+    label.style.fontSize = "12px";
+    label.style.marginTop = "4px";
+    div.appendChild(label);
+
+    container.appendChild(div);
+  });
+}
+
+// استدعاء الدالة بعد حماية الصفحة
+renderMapTypes();
 // عرض الخرائط المسموح بها للمستخدم
 function renderUserMaps(){
   const maps = JSON.parse(localStorage.getItem("pagesList") || "[]");
@@ -156,6 +200,7 @@ div.appendChild(label);
 </script>
 </body>
 </html>
+
 
 
 
