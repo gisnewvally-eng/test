@@ -255,8 +255,9 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 
   <!-- جهة اليسار: زر المستخدم -->
   <div class="header-left">
-    <a href="dashboard.html" class="user-dashboard" id="userDashboardBtn">صفحة المستخدم</a>
-  </div>
+  <a href="#" class="user-dashboard" id="userDashboardBtn">الصفحة الشخصية</a>
+</div>
+
 </header>
 
 
@@ -337,19 +338,38 @@ slider.addEventListener("touchend", e => {
   if(startX - endX > 50) goToSlide((currentSlide + 1) % slides.length); // سحب يسار
   setInterval(showNextSlide, 10000);
 });
-// عرض زر "صفحة المستخدم" إذا كان المستخدم مسجلاً دخول
+// عرض زر "الصفحة الشخصية" وتوجيهه حسب الدور
 document.addEventListener("DOMContentLoaded", function() {
-  const loggedUser = localStorage.getItem("loggedUser");
+  const loggedUser = JSON.parse(localStorage.getItem("loggedUser"));
+  const btn = document.getElementById("userDashboardBtn");
   if(loggedUser) {
-    document.getElementById("userDashboardBtn").style.display = "inline-block";
+    btn.style.display = "inline-block"; // إظهار الزر
+    // تحديد الرابط حسب الدور
+    switch(loggedUser.role) {
+      case "admin":
+        btn.href = "dashboard.html"; // صفحة الأدمن
+        break;
+      case "user":
+        btn.href = "user.html"; // صفحة المستخدم
+        break;
+      case "guest":
+        btn.href = "guest.html"; // صفحة الضيف
+        break;
+      default:
+        btn.style.display = "none";
+    }
+  } else {
+    btn.style.display = "none"; // إذا لم يكن هناك مستخدم مسجل دخول
   }
 });
+
 
 
 </script>
 
 </body>
 </html>
+
 
 
 
