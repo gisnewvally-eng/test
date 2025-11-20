@@ -105,9 +105,9 @@ link.style.gap = "10px";
 link.innerHTML = `<img src="${map.img}"><span>${map.name}</span>`;
 
 // السماح للضيف بالضغط فقط إذا لديه صلاحية
-if(!map.roles.includes("guest")) {
-  link.style.pointerEvents = "none";  // غير قابل للنقر
-  link.style.opacity = "0.6";         // للإشارة إلى أنه غير مفعل
+if(!map.roles.includes("guest") || !map.guestClickable) {
+  link.style.pointerEvents = "none";
+  link.style.opacity = "0.6";
 }
 
 div.appendChild(link);
@@ -119,4 +119,5 @@ div.appendChild(link);
 </script>
 </body>
 </html>
+
 
