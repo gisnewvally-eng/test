@@ -111,161 +111,158 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 </footer>
 
 <script>
-const toggleBtn = document.getElementById("toggleSidebar");
-const sidebar = document.querySelector(".sidebar");
-
-toggleBtn.onclick = function() {
-  sidebar.classList.toggle("hidden"); // إخفاء أو إظهار السايدبار
-  if(sidebar.classList.contains("hidden")){
-    toggleBtn.innerHTML = "&#9776;"; // ☰ عند الإخفاء
-  } else {
-    toggleBtn.innerHTML = "&times;"; // × عند الظهور
-  }
-};
-
-
-// ===== حماية الصفحة =====
-const sessionUser = protectPage(); // دالة من auth.js
-document.getElementById("userName").innerText = sessionUser.username;
-
-// ===== إدارة القوائم حسب الدور =====
-document.getElementById("adminMenu").style.display = sessionUser.role==="admin"?"block":"none";
-document.getElementById("userMenu").style.display = (sessionUser.role==="admin"||sessionUser.role==="user")?"block":"none";
-document.getElementById("guestMenu").style.display = "block";
-
-// عرض أقسام Admin فقط للمسؤول
-if(sessionUser.role==="admin"){
-  document.getElementById("adminControl").style.display = "block";
-  document.getElementById("adminAccounts").style.display = "block";
-  document.getElementById("visitsControl").style.display = "block";
-}
-
-// ===== تسجيل الخروج =====
-document.getElementById("logoutLink").onclick = ()=>{
-  logout(); // دالة من auth.js
-};
-
-// ===== توحيد إدارة المستخدمين =====
-const accountsKey = "users";
-if(!localStorage.getItem(accountsKey)){
-  localStorage.setItem(accountsKey, JSON.stringify([
-    { username: "admin", password: "1234", role: "admin" },
-    { username: "user1", password: "1111", role: "user" },
-    { username: "guest", password: "0000", role: "guest" }
-  ]));
-}
-// إظهار رابط إدارة الخرائط للأدمن فقط
-document.getElementById("managePagesMenu").style.display = sessionUser.role==="admin"?"block":"none";
-function updateSidebarMaps() {
-  const sidebar = document.querySelector(".sidebar");
-  // إزالة أي خرائط موجودة مسبقًا لتجنب التكرار
-  document.querySelectorAll(".sidebar .dynamic-map").forEach(el => el.remove());
-
-  const pages = JSON.parse(localStorage.getItem("pagesList") || "[]");
-  pages.forEach((page, index) => {
-    // إضافة فقط الخرائط المخصصة للأدمن
-    if(page.roles && page.roles.includes("admin")) {
-      const a = document.createElement("a");
-      a.href = page.url || "#";
-      a.textContent = page.name || "خريطة";
-      a.className = "dynamic-map";
-      a.target = "_blank"; // فتح الرابط في نافذة جديدة
-      if(!page.url) a.onclick = e => { e.preventDefault(); alert("لا يوجد رابط للخريطة"); };
-      sidebar.appendChild(a);
+window.onload = function() {
+    // حماية الصفحة
+    const sessionUser = protectPage(); // دالة من auth.js
+    if(!sessionUser){
+        alert("لم يتم التعرف على المستخدم، سيتم إعادة التوجيه");
+        window.location.href = "index.html";
+        return;
     }
-  });
-}
 
-// استدعاء الدالة بعد تحميل الصفحة
-updateSidebarMaps();
+    // عرض اسم المستخدم
+    document.getElementById("userName").innerText = sessionUser.username;
 
+    // إدارة القوائم حسب الدور
+    document.getElementById("adminMenu").style.display = sessionUser.role==="admin"?"block":"none";
+    document.getElementById("managePagesMenu").style.display = sessionUser.role==="admin"?"block":"none";
 
-// ===== سجل زيارات المستخدمين =====
-if(!localStorage.getItem("userVisits")){
-  const allUsers = JSON.parse(localStorage.getItem(accountsKey));
-  const visits = {};
-  allUsers.forEach(u=>visits[u.username]=0);
-  localStorage.setItem("userVisits", JSON.stringify(visits));
-}
-
-let visitsData = JSON.parse(localStorage.getItem("userVisits"));
-if(visitsData[sessionUser.username]!==undefined) visitsData[sessionUser.username]+=1;
-localStorage.setItem("userVisits", JSON.stringify(visitsData));
-
-// ===== شارت الزيارات =====
-const ctx = document.getElementById('visitsChart').getContext('2d');
-const visitsChart = new Chart(ctx, {
-  type:'bar',
-  data:{ labels:[], datasets:[{ label:'عدد الزيارات', data:[], backgroundColor:[] }] },
-});
-function updateVisitsChart(){
-  const visits = JSON.parse(localStorage.getItem("userVisits"));
-  visitsChart.data.labels = Object.keys(visits);
-  visitsChart.data.datasets[0].data = Object.values(visits);
-  visitsChart.data.datasets[0].backgroundColor = Object.keys(visits).map(u=>{
-    if(u.toLowerCase()==='admin') return '#004b8d';
-    if(u.toLowerCase()==='guest') return '#96c93d';
-    return '#2c3e50';
-  });
-  visitsChart.update();
-}
-updateVisitsChart();
-
-// ===== إدارة الحسابات =====
-function loadUsers(){
-  const userListDiv = document.getElementById("usersList");
-  const allUsers = JSON.parse(localStorage.getItem(accountsKey));
-  userListDiv.innerHTML = "";
-  allUsers.forEach((u,index)=>{
-    const div = document.createElement("div");
-    div.innerHTML = `${u.username} (${u.role}) <span>`;
+    // عرض أقسام Admin فقط للمسؤول
     if(sessionUser.role==="admin"){
-      div.innerHTML += `<button onclick="deleteUser(${index})">حذف</button> <button onclick="changePassword(${index})">تغيير كلمة المرور</button>`;
+        ["adminControl","adminAccounts","visitsControl"].forEach(id=>{
+            const el = document.getElementById(id);
+            if(el) el.style.display = "block";
+        });
     }
-    div.innerHTML += `</span>`;
-    userListDiv.appendChild(div);
-  });
-}
-loadUsers();
 
-document.getElementById("addUserBtn").onclick = ()=>{
-  const username = document.getElementById("newUsername").value.trim();
-  const password = document.getElementById("newPassword").value;
-  const role = document.getElementById("newRole").value;
-  if(!username || !password){ alert("املأ جميع الحقول"); return; }
-  const allUsers = JSON.parse(localStorage.getItem(accountsKey));
-  if(allUsers.find(u=>u.username===username)){ alert("اسم المستخدم موجود"); return; }
-  allUsers.push({username,password,role});
-  localStorage.setItem(accountsKey,JSON.stringify(allUsers));
-  let visits = JSON.parse(localStorage.getItem("userVisits"))||{};
-  visits[username]=0;
-localStorage.setItem("userVisits", JSON.stringify(visits));
-updateVisitsChart();
-  document.getElementById("newUsername").value="";
-  document.getElementById("newPassword").value="";
-  loadUsers(); updateVisitsChart();
+    // Sidebar toggle
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.querySelector(".sidebar");
+    toggleBtn.onclick = function() {
+        sidebar.classList.toggle("hidden"); 
+        toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
+    };
+
+    // ===== سجل زيارات المستخدمين =====
+    const accountsKey = "users";
+    if(!localStorage.getItem(accountsKey)){
+        localStorage.setItem(accountsKey, JSON.stringify([
+            { username: "admin", password: "1234", role: "admin" },
+            { username: "user1", password: "1111", role: "user" },
+            { username: "guest", password: "0000", role: "guest" }
+        ]));
+    }
+
+    if(!localStorage.getItem("userVisits")){
+        const allUsers = JSON.parse(localStorage.getItem(accountsKey));
+        const visits = {};
+        allUsers.forEach(u=>visits[u.username]=0);
+        localStorage.setItem("userVisits", JSON.stringify(visits));
+    }
+
+    let visitsData = JSON.parse(localStorage.getItem("userVisits"));
+    if(visitsData[sessionUser.username]!==undefined) visitsData[sessionUser.username]+=1;
+    localStorage.setItem("userVisits", JSON.stringify(visitsData));
+
+    // ===== شارت الزيارات =====
+    const ctx = document.getElementById('visitsChart').getContext('2d');
+    const visitsChart = new Chart(ctx, {
+        type:'bar',
+        data:{ labels:[], datasets:[{ label:'عدد الزيارات', data:[], backgroundColor:[] }] },
+    });
+
+    function updateVisitsChart(){
+        const visits = JSON.parse(localStorage.getItem("userVisits"));
+        visitsChart.data.labels = Object.keys(visits);
+        visitsChart.data.datasets[0].data = Object.values(visits);
+        visitsChart.data.datasets[0].backgroundColor = Object.keys(visits).map(u=>{
+            if(u.toLowerCase()==='admin') return '#004b8d';
+            if(u.toLowerCase()==='guest') return '#96c93d';
+            return '#2c3e50';
+        });
+        visitsChart.update();
+    }
+    updateVisitsChart();
+
+    // ===== إدارة الحسابات =====
+    function loadUsers(){
+        const userListDiv = document.getElementById("usersList");
+        const allUsers = JSON.parse(localStorage.getItem(accountsKey));
+        userListDiv.innerHTML = "";
+        allUsers.forEach((u,index)=>{
+            const div = document.createElement("div");
+            div.innerHTML = `${u.username} (${u.role}) <span>`;
+            if(sessionUser.role==="admin"){
+                div.innerHTML += `<button onclick="deleteUser(${index})">حذف</button> <button onclick="changePassword(${index})">تغيير كلمة المرور</button>`;
+            }
+            div.innerHTML += `</span>`;
+            userListDiv.appendChild(div);
+        });
+    }
+    loadUsers();
+
+    document.getElementById("addUserBtn").onclick = ()=>{
+        const username = document.getElementById("newUsername").value.trim();
+        const password = document.getElementById("newPassword").value;
+        const role = document.getElementById("newRole").value;
+        if(!username || !password){ alert("املأ جميع الحقول"); return; }
+        const allUsers = JSON.parse(localStorage.getItem(accountsKey));
+        if(allUsers.find(u=>u.username===username)){ alert("اسم المستخدم موجود"); return; }
+        allUsers.push({username,password,role});
+        localStorage.setItem(accountsKey,JSON.stringify(allUsers));
+        let visits = JSON.parse(localStorage.getItem("userVisits"))||{};
+        visits[username]=0;
+        localStorage.setItem("userVisits", JSON.stringify(visits));
+        updateVisitsChart();
+        document.getElementById("newUsername").value="";
+        document.getElementById("newPassword").value="";
+        loadUsers(); updateVisitsChart();
+    };
+
+    window.deleteUser = function(index){
+        if(!confirm("هل تريد حذف هذا المستخدم؟")) return;
+        const allUsers = JSON.parse(localStorage.getItem(accountsKey));
+        const username = allUsers[index].username;
+        allUsers.splice(index,1);
+        localStorage.setItem(accountsKey,JSON.stringify(allUsers));
+        let visits = JSON.parse(localStorage.getItem("userVisits"));
+        delete visits[username];
+        localStorage.setItem("userVisits",JSON.stringify(visits));
+        loadUsers(); updateVisitsChart();
+    }
+
+    window.changePassword = function(index){
+        const allUsers = JSON.parse(localStorage.getItem(accountsKey));
+        const newPass = prompt("ادخل كلمة المرور الجديدة:", allUsers[index].password);
+        if(newPass){ allUsers[index].password=newPass; localStorage.setItem(accountsKey,JSON.stringify(allUsers)); loadUsers(); }
+    }
+
+    // ===== Sidebar dynamic maps =====
+    function updateSidebarMaps() {
+        document.querySelectorAll(".sidebar .dynamic-map").forEach(el => el.remove());
+        const pages = JSON.parse(localStorage.getItem("pagesList") || "[]");
+        pages.forEach((page,index)=>{
+            if(page.roles && page.roles.includes("admin")){
+                const a = document.createElement("a");
+                a.href = page.url || "#";
+                a.textContent = page.name || "خريطة";
+                a.className = "dynamic-map";
+                a.target = "_blank";
+                if(!page.url) a.onclick = e => { e.preventDefault(); alert("لا يوجد رابط للخريطة"); };
+                sidebar.appendChild(a);
+            }
+        });
+    }
+    updateSidebarMaps();
+
+    // ===== تسجيل الخروج =====
+    document.getElementById("logoutLink").onclick = ()=>{ logout(); };
 };
 
-function deleteUser(index){
-  if(!confirm("هل تريد حذف هذا المستخدم؟")) return;
-  const allUsers = JSON.parse(localStorage.getItem(accountsKey));
-  const username = allUsers[index].username;
-  allUsers.splice(index,1);
-  localStorage.setItem(accountsKey,JSON.stringify(allUsers));
-  let visits = JSON.parse(localStorage.getItem("userVisits"));
-  delete visits[username];
-  localStorage.setItem("userVisits",JSON.stringify(visits));
-  loadUsers(); updateVisitsChart();
-}
-
-function changePassword(index){
-  const allUsers = JSON.parse(localStorage.getItem(accountsKey));
-  const newPass = prompt("ادخل كلمة المرور الجديدة:", allUsers[index].password);
-  if(newPass){ allUsers[index].password=newPass; localStorage.setItem(accountsKey,JSON.stringify(allUsers)); loadUsers(); }
-}
 </script>
 </body>
 </html>
+
 
 
 
