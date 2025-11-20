@@ -285,7 +285,8 @@ footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
 <div class="content">
   <h2>مرحباً بكم في جهاز معلومات شبكات المرافق والتخطيط العمراني</h2>
   <p>نظام شامل لإدارة بيانات البنية التحتية ومتابعة تحديثات الخرائط والخدمات الجغرافية.</p>
-  <a class="login-btn" href="login.html">تسجيل الدخول</a>
+ <a class="login-btn" id="loginBtn" href="login.html">تسجيل الدخول</a>
+
 </div>
 <footer>
   إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
@@ -366,36 +367,47 @@ document.addEventListener("DOMContentLoaded", function() {
 // فحص جلسة المستخدم
 const sessionUser = JSON.parse(localStorage.getItem("sessionUser"));
 
-// اختيار الأزرار من الهيدر
-const loginBtn = document.getElementById("loginBtn");
-const personalBtn = document.getElementById("personalPageBtn");
+document.addEventListener("DOMContentLoaded", function () {
 
-// إذا كان مسجل دخول → أخفي زر تسجيل الدخول واظهر زر الصفحة الشخصية
-if (sessionUser) {
-    if (loginBtn) loginBtn.style.display = "none";
-    if (personalBtn) personalBtn.style.display = "inline-block";
+    const loginBtn = document.getElementById("loginBtn");
+    const dashboardBtn = document.getElementById("userDashboardBtn");
 
-    // توجيه حسب الدور
-    personalBtn.onclick = function () {
-        if (sessionUser.role === "admin") {
-            window.location.href = "dashboard.html";
-        } else if (sessionUser.role === "user") {
-            window.location.href = "user.html";
-        } else {
-            window.location.href = "guest.html";
+    const loggedUser = JSON.parse(localStorage.getItem("loggedUser"));
+
+    if (loggedUser) {
+        // إخفاء تسجيل الدخول
+        if (loginBtn) loginBtn.style.display = "none";
+
+        // إظهار الصفحة الشخصية
+        if (dashboardBtn) {
+            dashboardBtn.style.display = "inline-block";
+
+            // تحويل حسب الدور
+            switch (loggedUser.role) {
+                case "admin":
+                    dashboardBtn.href = "dashboard.html";
+                    break;
+                case "user":
+                    dashboardBtn.href = "user.html";
+                    break;
+                case "guest":
+                    dashboardBtn.href = "guest.html";
+                    break;
+            }
         }
-    };
 
-} else {
-    // إذا غير مسجل → اخفاء زر الصفحة الشخصية واظهار زر تسجيل الدخول
-    if (loginBtn) loginBtn.style.display = "inline-block";
-    if (personalBtn) personalBtn.style.display = "none";
-}
+    } else {
+        // لم يسجل دخول
+        if (loginBtn) loginBtn.style.display = "inline-block";
+        if (dashboardBtn) dashboardBtn.style.display = "none";
+    }
+});
 
 </script>
 
 </body>
 </html>
+
 
 
 
