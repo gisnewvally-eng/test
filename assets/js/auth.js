@@ -20,6 +20,17 @@ function login() {
 
   if(user){
     localStorage.setItem("loggedUser", JSON.stringify(user));
+    if(user.role === "admin"){
+    window.location.href = "dashboard.html";
+} 
+else if(user.role === "user"){
+    window.location.href = "user.html";
+}
+else if(user.role === "guest"){
+    window.location.href = "guest.html";
+}
+return;
+
     window.location.href = "dashboard.html";
   } else {
     alert("اسم المستخدم أو كلمة المرور خاطئة");
@@ -77,3 +88,4 @@ function changePassword(username, newPassword){
     localStorage.setItem("users", JSON.stringify(users));
   }
 }
+
