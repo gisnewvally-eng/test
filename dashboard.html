@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard - جهاز معلومات شبكات المرافق</title>
+<title>Admin Dashboard - جهاز معلومات شبكات المرافق</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="assets/js/auth.js"></script>
 <style>
@@ -71,10 +71,7 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 
 <div class="sidebar">
   <a id="adminMenu" href="#">لوحة التحكم (Admin)</a>
-  <a id="userMenu" href="#">صفحات المستخدم</a>
-  <a id="guestMenu" href="#">صفحة الضيف</a>
   <a id="managePagesMenu" href="manage-pages.html">إدارة الخرائط</a>
-  <a href="Government-Departments-Complex.html">خريطة مجمع المصالح الحكومية</a>
 </div>
 
 <div class="main-content">
@@ -159,6 +156,28 @@ if(!localStorage.getItem(accountsKey)){
 }
 // إظهار رابط إدارة الخرائط للأدمن فقط
 document.getElementById("managePagesMenu").style.display = sessionUser.role==="admin"?"block":"none";
+function updateSidebarMaps() {
+  const sidebar = document.querySelector(".sidebar");
+  // إزالة أي خرائط موجودة مسبقًا لتجنب التكرار
+  document.querySelectorAll(".sidebar .dynamic-map").forEach(el => el.remove());
+
+  const pages = JSON.parse(localStorage.getItem("pagesList") || "[]");
+  pages.forEach((page, index) => {
+    // إضافة فقط الخرائط المخصصة للأدمن
+    if(page.roles && page.roles.includes("admin")) {
+      const a = document.createElement("a");
+      a.href = page.url || "#";
+      a.textContent = page.name || "خريطة";
+      a.className = "dynamic-map";
+      a.target = "_blank"; // فتح الرابط في نافذة جديدة
+      if(!page.url) a.onclick = e => { e.preventDefault(); alert("لا يوجد رابط للخريطة"); };
+      sidebar.appendChild(a);
+    }
+  });
+}
+
+// استدعاء الدالة بعد تحميل الصفحة
+updateSidebarMaps();
 
 
 // ===== سجل زيارات المستخدمين =====
@@ -247,6 +266,7 @@ function changePassword(index){
 </script>
 </body>
 </html>
+
 
 
 
