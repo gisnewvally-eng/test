@@ -198,6 +198,9 @@
 });
     renderGrid();
   }
+if(window.opener && window.opener.updateSidebarMaps){
+  window.opener.updateSidebarMaps();
+}
 
   window.onload = ()=>{
     renderGrid();
@@ -223,4 +226,5 @@
 </main>
 </body>
 </html>
+
 
