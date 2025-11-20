@@ -68,6 +68,7 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
     z-index: 1100;">
     &#9776;
 </div>
+<a id="managePagesMenu" href="manage-pages.html">إدارة الخرائط</a>
 
 <div class="sidebar">
   <a id="adminMenu" href="#">لوحة التحكم (Admin)</a>
@@ -156,6 +157,7 @@ if(!localStorage.getItem(accountsKey)){
     { username: "guest", password: "0000", role: "guest" }
   ]));
 }
+document.getElementById("managePagesMenu").style.display = sessionUser.role==="admin"?"block":"none";
 
 // ===== سجل زيارات المستخدمين =====
 if(!localStorage.getItem("userVisits")){
@@ -242,3 +244,4 @@ function changePassword(index){
 </script>
 </body>
 </html>
+
