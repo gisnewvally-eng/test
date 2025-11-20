@@ -64,7 +64,24 @@ function protectUser(){
   localStorage.setItem("userVisits", JSON.stringify(visits));
 
   updateUserChart();
-  renderUserMaps();
+  renderUserMaps(const guestChk = document.createElement("input");
+guestChk.type = "checkbox";
+guestChk.checked = map.guestClickable || false;
+guestChk.onchange = e => {
+    map.guestClickable = e.target.checked;
+    // تحديث التخزين مباشرة
+    let allPages = JSON.parse(localStorage.getItem("pagesList") || "[]");
+    allPages = allPages.map(p => {
+        if(p.name === map.name) p.guestClickable = e.target.checked;
+        return p;
+    });
+    localStorage.setItem("pagesList", JSON.stringify(allPages));
+};
+const label = document.createElement("label");
+label.textContent = " السماح للضيف بالضغط";
+label.prepend(guestChk);
+div.appendChild(label);
+);
 }
 
 function saveGuestMessage(){
@@ -113,6 +130,24 @@ link.innerHTML = `<img src="${map.img}"><span>${map.name}</span>`;
 
 // المستخدم دائماً مسموح له بالنقر على الخرائط المسموح بها له
 div.appendChild(link);
+// إضافة خيار السماح للضيف بالنقر على الخريطة
+const guestChk = document.createElement("input");
+guestChk.type = "checkbox";
+guestChk.checked = map.guestClickable || false;
+guestChk.onchange = e => {
+    map.guestClickable = e.target.checked;
+    // تحديث التخزين مباشرة
+    let allPages = JSON.parse(localStorage.getItem("pagesList") || "[]");
+    allPages = allPages.map(p => {
+        if(p.name === map.name) p.guestClickable = e.target.checked;
+        return p;
+    });
+    localStorage.setItem("pagesList", JSON.stringify(allPages));
+};
+const label = document.createElement("label");
+label.textContent = " السماح للضيف بالضغط";
+label.prepend(guestChk);
+div.appendChild(label);
 
       container.appendChild(div);
     }
@@ -121,4 +156,5 @@ div.appendChild(link);
 </script>
 </body>
 </html>
+
 
