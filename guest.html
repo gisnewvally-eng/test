@@ -13,6 +13,13 @@ header { background: linear-gradient(90deg, #1a2980, #26d0ce); color:#fff; paddi
 .card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:25px; }
 .map-card { background:#fff; border-radius:8px; padding:10px; margin-bottom:10px; display:flex; align-items:center; gap:10px; }
 .map-card img { width:60px; height:60px; object-fit:contain; }
+  /* إضافة/تعديل هذا الجزء لتصغير حجم الشارت */
+canvas {
+  width: 100% !important;
+  max-width: 400px;   /* تقليل الحجم */
+  height: 200px !important; /* ارتفاع أقل */
+}
+
 </style>
 </head>
 <body onload="protectGuest()">
@@ -63,6 +70,10 @@ const ctx = document.getElementById("guestChart").getContext("2d");
 const guestChart = new Chart(ctx, {
   type: 'bar',
   data: { labels:[], datasets:[{ label:'عدد الزيارات', data:[], backgroundColor:[] }] },
+    options: {
+    responsive: true,
+    maintainAspectRatio: false  // يسمح بتحديد الحجم عبر CSS
+  }
 });
 function updateGuestChart(){
   const visits = JSON.parse(localStorage.getItem("userVisits")) || {};
@@ -85,7 +96,22 @@ function renderGuestMaps(){
     if(map.roles && map.roles.includes("guest")){
       const div = document.createElement("div");
       div.className="map-card";
-      div.innerHTML = `<img src="${map.img}"><span>${map.name}</span>`;
+      const link = document.createElement("a");
+link.href = map.url || "#";
+link.target = "_blank"; // تفتح في نافذة جديدة
+link.style.display = "flex";
+link.style.alignItems = "center";
+link.style.gap = "10px";
+link.innerHTML = `<img src="${map.img}"><span>${map.name}</span>`;
+
+// السماح للضيف بالضغط فقط إذا لديه صلاحية
+if(!map.roles.includes("guest")) {
+  link.style.pointerEvents = "none";  // غير قابل للنقر
+  link.style.opacity = "0.6";         // للإشارة إلى أنه غير مفعل
+}
+
+div.appendChild(link);
+
       container.appendChild(div);
     }
   });
@@ -93,3 +119,4 @@ function renderGuestMaps(){
 </script>
 </body>
 </html>
+
