@@ -115,6 +115,12 @@
       const img = document.createElement("img");
       img.src = page.img || availableImages["سكنية"];
       card.appendChild(img);
+      img.style.cursor = "pointer";
+      img.onclick = () => {
+      if(page.url) window.open(page.url, "_blank");
+      else alert("لا يوجد رابط للخريطة");
+      };
+
 
       const input = document.createElement("input");
       input.type = "text";
@@ -122,6 +128,13 @@
       input.placeholder = "اسم الخريطة";
       input.oninput = e => page.name = e.target.value;
       card.appendChild(input);
+      
+      const urlInput = document.createElement("input");
+      urlInput.type = "text";
+      urlInput.value = page.url || "";
+      urlInput.placeholder = "رابط الخريطة";
+      urlInput.oninput = e => page.url = e.target.value;
+      card.appendChild(urlInput);
 
       const roleDiv = document.createElement("div");
       roleDiv.className = "roles";
@@ -177,7 +190,12 @@
   }
 
   function addNewPage(){
-    pagesList.push({name:"خريطة جديدة", img:availableImages["سكنية"], roles:["admin"]});
+   pagesList.push({
+  name:"خريطة جديدة",
+  img: availableImages["سكنية"],
+  roles:["admin"],
+  url:""
+});
     renderGrid();
   }
 
@@ -205,3 +223,4 @@
 </main>
 </body>
 </html>
+
