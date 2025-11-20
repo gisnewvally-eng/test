@@ -68,12 +68,12 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
     z-index: 1100;">
     &#9776;
 </div>
-<a id="managePagesMenu" href="manage-pages.html">إدارة الخرائط</a>
 
 <div class="sidebar">
   <a id="adminMenu" href="#">لوحة التحكم (Admin)</a>
   <a id="userMenu" href="#">صفحات المستخدم</a>
   <a id="guestMenu" href="#">صفحة الضيف</a>
+  <a id="managePagesMenu" href="manage-pages.html">إدارة الخرائط</a>
   <a href="Government-Departments-Complex.html">خريطة مجمع المصالح الحكومية</a>
 </div>
 
@@ -157,7 +157,9 @@ if(!localStorage.getItem(accountsKey)){
     { username: "guest", password: "0000", role: "guest" }
   ]));
 }
+// إظهار رابط إدارة الخرائط للأدمن فقط
 document.getElementById("managePagesMenu").style.display = sessionUser.role==="admin"?"block":"none";
+
 
 // ===== سجل زيارات المستخدمين =====
 if(!localStorage.getItem("userVisits")){
@@ -219,6 +221,10 @@ document.getElementById("addUserBtn").onclick = ()=>{
   let visits = JSON.parse(localStorage.getItem("userVisits"))||{};
   visits[username]=0;
   localStorage.setItem("userVisits",JSON.stringify(visits));
+  let visits = JSON.parse(localStorage.getItem("userVisits"))||{};
+visits[username]=0;
+localStorage.setItem("userVisits", JSON.stringify(visits));
+updateVisitsChart();
   document.getElementById("newUsername").value="";
   document.getElementById("newPassword").value="";
   loadUsers(); updateVisitsChart();
@@ -244,4 +250,5 @@ function changePassword(index){
 </script>
 </body>
 </html>
+
 
