@@ -220,9 +220,6 @@ document.getElementById("addUserBtn").onclick = ()=>{
   localStorage.setItem(accountsKey,JSON.stringify(allUsers));
   let visits = JSON.parse(localStorage.getItem("userVisits"))||{};
   visits[username]=0;
-  localStorage.setItem("userVisits",JSON.stringify(visits));
-  let visits = JSON.parse(localStorage.getItem("userVisits"))||{};
-visits[username]=0;
 localStorage.setItem("userVisits", JSON.stringify(visits));
 updateVisitsChart();
   document.getElementById("newUsername").value="";
@@ -250,5 +247,6 @@ function changePassword(index){
 </script>
 </body>
 </html>
+
 
 
