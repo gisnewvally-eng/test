@@ -123,10 +123,6 @@ window.onload = function() {
     // عرض اسم المستخدم
     document.getElementById("userName").innerText = sessionUser.username;
 
-    // إدارة القوائم حسب الدور
-    document.getElementById("adminMenu").style.display = sessionUser.role==="admin"?"block":"none";
-    document.getElementById("managePagesMenu").style.display = sessionUser.role==="admin"?"block":"none";
-
     // عرض أقسام Admin فقط للمسؤول
     if(sessionUser.role==="admin"){
         ["adminControl","adminAccounts","visitsControl"].forEach(id=>{
@@ -262,6 +258,7 @@ window.onload = function() {
 </script>
 </body>
 </html>
+
 
 
 
