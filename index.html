@@ -363,12 +363,40 @@ document.addEventListener("DOMContentLoaded", function() {
   }
 });
 
+// فحص جلسة المستخدم
+const sessionUser = JSON.parse(localStorage.getItem("sessionUser"));
 
+// اختيار الأزرار من الهيدر
+const loginBtn = document.getElementById("loginBtn");
+const personalBtn = document.getElementById("personalPageBtn");
+
+// إذا كان مسجل دخول → أخفي زر تسجيل الدخول واظهر زر الصفحة الشخصية
+if (sessionUser) {
+    if (loginBtn) loginBtn.style.display = "none";
+    if (personalBtn) personalBtn.style.display = "inline-block";
+
+    // توجيه حسب الدور
+    personalBtn.onclick = function () {
+        if (sessionUser.role === "admin") {
+            window.location.href = "dashboard.html";
+        } else if (sessionUser.role === "user") {
+            window.location.href = "user.html";
+        } else {
+            window.location.href = "guest.html";
+        }
+    };
+
+} else {
+    // إذا غير مسجل → اخفاء زر الصفحة الشخصية واظهار زر تسجيل الدخول
+    if (loginBtn) loginBtn.style.display = "inline-block";
+    if (personalBtn) personalBtn.style.display = "none";
+}
 
 </script>
 
 </body>
 </html>
+
 
 
 
