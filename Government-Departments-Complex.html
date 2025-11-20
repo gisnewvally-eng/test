@@ -12,12 +12,16 @@
 <script>
 try {
   const sessionUser = JSON.parse(localStorage.getItem("loggedUser"));
+  
   if (!sessionUser) {
+    // إذا لم يكن هناك مستخدم مسجل الدخول
     window.location.href = "index.html";
   } else {
-    const allowedRoles = ["admin", "user"];
+    // السماح لكل الأدوار الممكنة: admin, user, guest
+    const allowedRoles = ["admin", "user", "guest"];
     if (!allowedRoles.includes(sessionUser.role)) {
-      window.location.href = "index.html";
+      alert("ليس لديك صلاحية لدخول هذه الصفحة.");
+      window.location.href = "index.html"; // أو صفحة بديلة لمن لا يملك صلاحية
     }
   }
 } catch (err) {
@@ -843,8 +847,31 @@ document.addEventListener("keydown", e => {
 
 // إعادة التوجيه للداشبورد عند الضغط على "الرئيسية"
 document.getElementById("homeBtn").addEventListener("click", () => {
-  window.location.href = "dashboard.html"; // رابط لوحة التحكم
+  const user = JSON.parse(localStorage.getItem("loggedUser"));
+
+  if(!user || !user.role){
+    // إذا لم يكن هناك مستخدم مسجل، اذهب للصفحة العامة
+    window.location.href = "index.html";
+    return;
+  }
+
+  switch(user.role){
+    case "admin":
+      window.location.href = "dashboard.html";
+      break;
+    case "user":
+      window.location.href = "user.html"; // لوحة المستخدم
+      break;
+    case "guest":
+      window.location.href = "guest.html"; // لوحة الضيف
+      break;
+    default:
+      window.location.href = "index.html"; // أي حالة غير متوقعة
+  }
 });
+
+
+
 
 // تسجيل الخروج
 document.getElementById("logoutBtn").addEventListener("click", () => {
@@ -856,6 +883,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 </script>
 </body>
 </html>
+
 
 
 
