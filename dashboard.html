@@ -77,14 +77,6 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 <div class="main-content">
   <h2>لوحة التحكم</h2>
 
-  <div id="adminControl" class="admin-section">
-    <h3>إدارة الصور</h3>
-    <input type="text" id="newImageURL" placeholder="رابط الصورة من الإنترنت">
-    <input type="file" id="newImageFile" accept="image/*">
-    <button id="addImageBtn">إضافة صورة</button>
-    <div id="imagesContainer"></div>
-  </div>
-
   <div id="adminAccounts" class="admin-section">
     <h3>إدارة الحسابات</h3>
     <input type="text" id="newUsername" placeholder="اسم المستخدم">
@@ -125,7 +117,7 @@ window.onload = function() {
 
     // عرض أقسام Admin فقط للمسؤول
     if(sessionUser.role==="admin"){
-        ["adminControl","adminAccounts","visitsControl"].forEach(id=>{
+        ["adminAccounts","visitsControl"].forEach(id=>{
             const el = document.getElementById(id);
             if(el) el.style.display = "block";
         });
@@ -258,6 +250,7 @@ window.onload = function() {
 </script>
 </body>
 </html>
+
 
 
 
