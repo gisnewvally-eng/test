@@ -1,10 +1,11 @@
-// ------------------ auth.js (Supabase Version) ------------------
+// ------------------ auth.js (Supabase Version مصحح) ------------------
 
 // 1️⃣ تهيئة Supabase
 const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_JK3bRv-u0gaoduyKQFBUeg_yhKc9p5y";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// تغيير الاسم لتجنب التعارض
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ------------------ تسجيل الدخول ------------------
 async function login() {
@@ -16,15 +17,16 @@ async function login() {
     return;
   }
 
-  const { data: session, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: session, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if(error){
     alert("البريد أو كلمة المرور خاطئة");
+    console.log(error);
     return;
   }
 
   // جلب بيانات المستخدم من جدول profiles
-  const { data: profile, error: profileError } = await supabase
+  const { data: profile, error: profileError } = await supabaseClient
     .from("profiles")
     .select("*")
     .eq("id", session.user.id)
@@ -35,7 +37,7 @@ async function login() {
     return;
   }
 
-  // حفظ بيانات المستخدم محليًا مؤقتًا (اختياري)
+  // حفظ بيانات المستخدم محليًا مؤقتًا
   localStorage.setItem("loggedUser", JSON.stringify({ email, role: profile.role }));
 
   // توجيه المستخدم حسب الدور
@@ -46,20 +48,20 @@ async function login() {
 
 // ------------------ تسجيل الخروج ------------------
 async function logout() {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   localStorage.removeItem("loggedUser");
   window.location.href = "index.html";
 }
 
 // ------------------ حماية الصفحات ------------------
 async function protectPage() {
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await supabaseClient.auth.getUser();
   if(!user){
     window.location.href = "index.html";
     return null;
   }
 
-  const { data: profile, error } = await supabase
+  const { data: profile, error } = await supabaseClient
     .from("profiles")
     .select("*")
     .eq("id", user.id)
@@ -77,23 +79,21 @@ async function protectPage() {
 
 // جلب كل المستخدمين
 async function getUsers(){
-  const { data: profiles, error } = await supabase.from("profiles").select("*");
+  const { data: profiles, error } = await supabaseClient.from("profiles").select("*");
   if(error) return [];
   return profiles;
 }
 
 // إضافة مستخدم جديد
 async function addUser(email, password, role){
-  // تسجيل المستخدم أولاً في Auth
-  const { data: user, error } = await supabase.auth.signUp({ email, password });
+  const { data: user, error } = await supabaseClient.auth.signUp({ email, password });
 
   if(error){
     alert("خطأ في إنشاء المستخدم: " + error.message);
     return false;
   }
 
-  // إضافة الدور في جدول profiles
-  const { error: profileError } = await supabase
+  const { error: profileError } = await supabaseClient
     .from("profiles")
     .insert([{ id: user.user.id, role }]);
 
@@ -107,16 +107,12 @@ async function addUser(email, password, role){
 
 // حذف مستخدم
 async function deleteUser(userId){
-  // حذف من جدول profiles
-  await supabase.from("profiles").delete().eq("id", userId);
-  
-  // حذف من Auth (يتطلب مفتاح Admin API وليس Public Key)
+  await supabaseClient.from("profiles").delete().eq("id", userId);
   alert("لحذف المستخدم نهائياً من Supabase Auth يجب استخدام Admin API من الخادم");
 }
 
 // تعديل كلمة مرور
 async function changePassword(userId, newPassword){
-  // تغيير كلمة المرور يتطلب Admin API من الخادم أو إعادة تعيينها للبريد
   alert("لتغيير كلمة المرور يجب استخدام Admin API أو رابط إعادة تعيين كلمة المرور للبريد");
 }
 
@@ -138,7 +134,6 @@ async function loadUsersList() {
 }
 
 // ------------------ مراقبة الجلسة ------------------
-supabase.auth.onAuthStateChange((event, session) => {
-  // يمكن استخدامه لتحديث واجهة المستخدم تلقائيًا عند تسجيل الخروج أو الدخول
+supabaseClient.auth.onAuthStateChange((event, session) => {
   if(!session) localStorage.removeItem("loggedUser");
 });
