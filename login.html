@@ -1,138 +1,155 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>تسجيل الدخول</title>
-  <script src="assets/js/auth.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول</title>
 
-  <style>
-    * { box-sizing: border-box; }
+<!-- Supabase JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.37.0/dist/supabase.min.js"></script>
 
-    body {
-      margin: 0;
-      padding: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      background: #f0f3f7;
-      font-family: "Arial", sans-serif;
-    }
-
-    /* صندوق تسجيل الدخول */
-    .box {
-      position: relative; 
-      padding: 60px 30px 30px 30px; /* زيادة padding أعلى لإتاحة مكان للوجو */
-      background: #fff;
-      width: 350px;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-      text-align: center;
-      transition: 0.3s;
-    }
-
-    .box:hover { transform: translateY(-3px); }
-
-    /* اللوجو بالكامل داخل المربع */
-    .login-logo {
-      position: absolute;
-      top: 10px;      /* داخل المربع */
-      right: 10px;    /* داخل المربع */
-      width: 50px;
-      height: 50px;
-      background: #fff; 
-      padding: 5px;
-      border-radius: 50%;
-      object-fit: contain;
-      box-shadow: 0 0 6px rgba(0,0,0,0.2);
-    }
-
-    /* سهم الرجوع في الزاوية المقابلة */
-    .back-arrow {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      font-size: 24px;
-      color: #1a2980;
-      cursor: pointer;
-      text-decoration: none;
-      transition: 0.2s;
-    }
-
-    .back-arrow:hover { opacity: 0.7; }
-
-    h2 {
-      margin-top: 20px;
-      margin-bottom: 20px;
-      color: #1a2980;
-      font-weight: bold;
-    }
-
-    input {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 16px;
-      transition: 0.2s;
-    }
-
-    input:focus {
-      border-color: #1a2980;
-      outline: none;
-      box-shadow: 0 0 5px rgba(26, 41, 128, 0.4);
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 15px;
-      background: linear-gradient(to right, #1a2980, #26d0ce);
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 16px;
-      transition: 0.2s;
-    }
-
-    button:hover { opacity: 0.9; }
-
-    /* تصميم متجاوب */
-    @media (max-width: 400px) {
-      .box { width: 90%; padding: 70px 20px 20px; }
-      .login-logo { width: 45px; height: 45px; top: 10px; right: 10px; }
-      .back-arrow { font-size: 22px; top: 10px; left: 10px; }
-    }
-  </style>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: #f0f3f7;
+  font-family: "Arial", sans-serif;
+}
+.box {
+  position: relative;
+  padding: 60px 30px 30px 30px;
+  background: #fff;
+  width: 350px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+  text-align: center;
+  transition: 0.3s;
+}
+.box:hover { transform: translateY(-3px); }
+.login-logo {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 50px;
+  height: 50px;
+  background: #fff; 
+  padding: 5px;
+  border-radius: 50%;
+  object-fit: contain;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}
+.back-arrow {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  font-size: 24px;
+  color: #1a2980;
+  cursor: pointer;
+  text-decoration: none;
+  transition: 0.2s;
+}
+.back-arrow:hover { opacity: 0.7; }
+h2 {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  color: #1a2980;
+  font-weight: bold;
+}
+input {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+  transition: 0.2s;
+}
+input:focus {
+  border-color: #1a2980;
+  outline: none;
+  box-shadow: 0 0 5px rgba(26, 41, 128, 0.4);
+}
+button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 15px;
+  background: linear-gradient(to right, #1a2980, #26d0ce);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: 0.2s;
+}
+button:hover { opacity: 0.9; }
+@media (max-width: 400px) {
+  .box { width: 90%; padding: 70px 20px 20px; }
+  .login-logo { width: 45px; height: 45px; top: 10px; right: 10px; }
+  .back-arrow { font-size: 22px; top: 10px; left: 10px; }
+}
+</style>
 </head>
 <body>
 
-  <div class="box">
-    <!-- سهم الرجوع -->
-    <a href="index.html" class="back-arrow">↩</a>
+<div class="box">
+  <a href="index.html" class="back-arrow">↩</a>
+  <img src="assets/images/logo.png" class="login-logo" alt="Logo">
+  <h2>تسجيل الدخول</h2>
 
-    <!-- اللوجو داخل المربع بالكامل -->
-    <img src="assets/images/logo.png" class="login-logo" alt="Logo">
+  <input type="email" placeholder="البريد الإلكتروني" id="user">
+  <input type="password" placeholder="كلمة المرور" id="pass">
+  <button id="loginBtn">دخول</button>
+</div>
 
-    <h2>تسجيل الدخول</h2>
+<script>
+// --- إعداد Supabase ---
+const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
+const SUPABASE_KEY = "sb_publishable_JK3bRv-u0gaoduyKQFBUeg_yhKc9p5y";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    <input type="text" placeholder="اسم المستخدم" id="user">
-    <input type="password" placeholder="كلمة المرور" id="pass">
+// --- دالة تسجيل الدخول ---
+async function login() {
+  const email = document.getElementById("user").value.trim();
+  const password = document.getElementById("pass").value;
 
-    <button id="loginBtn" onclick="login()">دخول</button>
-  </div>
+  if (!email || !password) {
+    alert("املأ جميع الحقول");
+    return;
+  }
 
-  <script>
-    // تشغيل تسجيل الدخول عند الضغط على Enter
-    document.addEventListener("keypress", function(e) {
-      if (e.key === "Enter") {
-        document.getElementById("loginBtn").click();
-      }
-    });
-  </script>
+  const { data: session, error } = await supabase.auth.signInWithPassword({ email, password });
+
+  if (error) {
+    alert("البريد أو كلمة المرور خاطئة");
+    console.log(error);
+    return;
+  }
+
+  // جلب بيانات المستخدم لتحديد الدور
+  const { data: profile } = await supabase.from("users").select("*").eq("email", email).single();
+  
+  if(profile){
+    const role = profile.role;
+    if(role === "admin") window.location.href = "dashboard.html";
+    else if(role === "user") window.location.href = "user.html";
+    else if(role === "guest") window.location.href = "guest.html";
+    else window.location.href = "index.html";
+  } else {
+    alert("لم يتم التعرف على المستخدم");
+  }
+}
+
+// --- تشغيل تسجيل الدخول عند Enter ---
+document.getElementById("loginBtn").addEventListener("click", login);
+document.addEventListener("keypress", function(e){
+  if(e.key === "Enter") document.getElementById("loginBtn").click();
+});
+</script>
 
 </body>
 </html>
