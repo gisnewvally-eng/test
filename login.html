@@ -122,6 +122,7 @@ async function login() {
     return;
   }
 
+  // تسجيل الدخول عبر Supabase Auth
   const { data: session, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
@@ -130,27 +131,38 @@ async function login() {
     return;
   }
 
-  // جلب بيانات المستخدم لتحديد الدور
-  const { data: profile } = await supabase.from("profiles").select("*").eq("email", email).single();
-  
-  if(profile){
-    const role = profile.role;
-    if(role === "admin") window.location.href = "dashboard.html";
-    else if(role === "user") window.location.href = "user.html";
-    else if(role === "guest") window.location.href = "guest.html";
-    else window.location.href = "index.html";
-  } else {
+  // جلب بيانات المستخدم من جدول profiles لتحديد الدور
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+
+  if (profileError || !profile) {
     alert("لم يتم التعرف على المستخدم");
+    console.log(profileError);
+    return;
   }
+
+  // حفظ بيانات المستخدم محليًا مؤقتًا
+  localStorage.setItem("loggedUser", JSON.stringify({ email, role: profile.role }));
+
+  // توجيه المستخدم حسب الدور
+  if (profile.role === "admin") window.location.href = "dashboard.html";
+  else if (profile.role === "user") window.location.href = "user.html";
+  else if (profile.role === "guest") window.location.href = "guest.html";
+  else window.location.href = "index.html";
 }
 
-// --- تشغيل تسجيل الدخول عند Enter ---
+// --- تشغيل تسجيل الدخول عند الضغط على الزر أو Enter ---
 document.getElementById("loginBtn").addEventListener("click", login);
 document.addEventListener("keypress", function(e){
   if(e.key === "Enter") document.getElementById("loginBtn").click();
 });
 </script>
 
+
 </body>
 </html>
+
 
