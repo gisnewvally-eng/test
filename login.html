@@ -10,92 +10,173 @@
 <script src="assets/js/auth.js"></script>
 
 <style>
-/* ---------------------------------
-   كود CSS الخاص بك (بدون تغيير)
-   --------------------------------- */
+
 * { box-sizing: border-box; }
+
 body {
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background: #f0f3f7;
-  font-family: "Arial", sans-serif;
+
+  margin: 0;
+
+  padding: 0;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  height: 100vh;
+
+  background: #f0f3f7;
+
+  font-family: "Arial", sans-serif;
+
 }
+
 .box {
-  position: relative;
-  padding: 60px 30px 30px 30px;
-  background: #fff;
-  width: 350px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.12);
-  text-align: center;
-  transition: 0.3s;
+
+  position: relative;
+
+  padding: 60px 30px 30px 30px;
+
+  background: #fff;
+
+  width: 350px;
+
+  border-radius: 12px;
+
+  box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+
+  text-align: center;
+
+  transition: 0.3s;
+
 }
+
 .box:hover { transform: translateY(-3px); }
+
 .login-logo {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 50px;
-  height: 50px;
-  background: #fff; 
-  padding: 5px;
-  border-radius: 50%;
-  object-fit: contain;
-  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+
+  position: absolute;
+
+  top: 10px;
+
+  right: 10px;
+
+  width: 50px;
+
+  height: 50px;
+
+  background: #fff; 
+
+  padding: 5px;
+
+  border-radius: 50%;
+
+  object-fit: contain;
+
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+
 }
+
 .back-arrow {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  font-size: 24px;
-  color: #1a2980;
-  cursor: pointer;
-  text-decoration: none;
-  transition: 0.2s;
+
+  position: absolute;
+
+  top: 10px;
+
+  left: 10px;
+
+  font-size: 24px;
+
+  color: #1a2980;
+
+  cursor: pointer;
+
+  text-decoration: none;
+
+  transition: 0.2s;
+
 }
+
 .back-arrow:hover { opacity: 0.7; }
+
 h2 {
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #1a2980;
-  font-weight: bold;
+
+  margin-top: 20px;
+
+  margin-bottom: 20px;
+
+  color: #1a2980;
+
+  font-weight: bold;
+
 }
+
 input {
-  width: 100%;
-  padding: 12px;
-  margin-top: 10px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
-  font-size: 16px;
-  transition: 0.2s;
+
+  width: 100%;
+
+  padding: 12px;
+
+  margin-top: 10px;
+
+  border-radius: 6px;
+
+  border: 1px solid #ccc;
+
+  font-size: 16px;
+
+  transition: 0.2s;
+
 }
+
 input:focus {
-  border-color: #1a2980;
-  outline: none;
-  box-shadow: 0 0 5px rgba(26, 41, 128, 0.4);
+
+  border-color: #1a2980;
+
+  outline: none;
+
+  box-shadow: 0 0 5px rgba(26, 41, 128, 0.4);
+
 }
+
 button {
-  width: 100%;
-  padding: 12px;
-  margin-top: 15px;
-  background: linear-gradient(to right, #1a2980, #26d0ce);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: 0.2s;
+
+  width: 100%;
+
+  padding: 12px;
+
+  margin-top: 15px;
+
+  background: linear-gradient(to right, #1a2980, #26d0ce);
+
+  color: white;
+
+  border: none;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+
+  font-size: 16px;
+
+  transition: 0.2s;
+
 }
+
 button:hover { opacity: 0.9; }
+
 @media (max-width: 400px) {
-  .box { width: 90%; padding: 70px 20px 20px; }
-  .login-logo { width: 45px; height: 45px; top: 10px; right: 10px; }
-  .back-arrow { font-size: 22px; top: 10px; left: 10px; }
+
+  .box { width: 90%; padding: 70px 20px 20px; }
+
+  .login-logo { width: 45px; height: 45px; top: 10px; right: 10px; }
+
+  .back-arrow { font-size: 22px; top: 10px; left: 10px; }
+
 }
+
 </style>
 </head>
 <body>
@@ -129,3 +210,4 @@ button:hover { opacity: 0.9; }
 
 </body>
 </html>
+
