@@ -13,39 +13,39 @@
 <script src="assets/js/auth.js"></script>
 
 <script>
-    // ⚠️ نستخدم دالة حماية الصفحة عند تحميلها
-    window.onload = async function() {
-        const userProfile = await protectPage();
+    // ⚠️ نستخدم دالة حماية الصفحة عند تحميلها
+    window.onload = async function() {
+        const userProfile = await protectPage();
 
-        if (!userProfile) return; // protectPage ستقوم بالتوجيه إن لم يكن مسجلاً
+        if (!userProfile) return; // protectPage ستقوم بالتوجيه إن لم يكن مسجلاً
 
-        // ⚠️ التأكد من السماح بالدخول لأي مستخدم مسجل
-        const allowedRoles = ["admin", "user", "guest"];
-        if (!allowedRoles.includes(userProfile.role)) {
-            alert("ليس لديك صلاحية لدخول هذه الخريطة.");
-            logout(); // إخراج المستخدم غير المسموح له
-            return;
-        }
+        // ⚠️ التأكد من السماح بالدخول لأي مستخدم مسجل
+        const allowedRoles = ["admin", "user", "guest"];
+        if (!allowedRoles.includes(userProfile.role)) {
+            alert("ليس لديك صلاحية لدخول هذه الخريطة.");
+            logout(); // إخراج المستخدم غير المسموح له
+            return;
+        }
 
-        // تسجيل زيارة الخريطة في Supabase
-        await recordVisit(userProfile.role, window.location.pathname.split('/').pop());
+        // تسجيل زيارة الخريطة في Supabase
+        await recordVisit(userProfile.role, window.location.pathname.split('/').pop());
 
-        // بعد التحقق من الصلاحية، نبدأ تهيئة الخريطة (باقي الكود في الأسفل)
-        initMapLogic();
-    };
+        // بعد التحقق من الصلاحية، نبدأ تهيئة الخريطة (باقي الكود في الأسفل)
+        initMapLogic();
+    };
 
-    // 💡 مهم: دالة وهمية لمنع تنفيذ باقي منطق الخريطة قبل التحقق من الصلاحيات
-    function initMapLogic(){
-        // هنا سيبدأ تنفيذ كل منطق الخريطة الموجود في نهاية الملف
-        // (وهو ما تم نقله في نهاية هذا الكود)
-    }
+    // 💡 مهم: دالة وهمية لمنع تنفيذ باقي منطق الخريطة قبل التحقق من الصلاحيات
+    function initMapLogic(){
+        // هنا سيبدأ تنفيذ كل منطق الخريطة الموجود في نهاية الملف
+        // (وهو ما تم نقله في نهاية هذا الكود)
+    }
 
 </script>
 
 <style>
 /* -------------------------------------------------
-   CSS الخاص بك (تم نقله هنا دون تغيير)
-   ------------------------------------------------- */
+   CSS الخاص بك (تم نقله هنا دون تغيير ما عدا سهم الشمال)
+   ------------------------------------------------- */
   :root{
     --accent:#228B22;
     --green:#32CD32;
@@ -395,7 +395,8 @@ footer .line2 {
   display: block;
   width: 40px;
   height: 40px;
-  background: url('north.png') no-repeat center/contain;
+  /* 🔑 المسار الجديد للصورة في مجلد map_images */
+  background: url('assets/map_images/north.png') no-repeat center/contain;
 }
 
 /* في الوضع الليلي */
@@ -521,365 +522,367 @@ body.dark-mode #map #northArrow {
   </footer>
 
 <script>
-    // -------------------------------------------------
-    // وضع كل منطق الخريطة داخل دالة initMapLogic
-    // -------------------------------------------------
-    initMapLogic = function() {
+    // -------------------------------------------------
+    // وضع كل منطق الخريطة داخل دالة initMapLogic
+    // -------------------------------------------------
+    initMapLogic = function() {
 
-        /* -----------------------
+        /* -----------------------
            Base maps and Map init
            ----------------------- */
-        const baseMaps = {
-            osm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, attribution:'© OpenStreetMap contributors'}),
-            satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}),
-            dark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19})
-        };
+        const baseMaps = {
+            osm: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19, attribution:'© OpenStreetMap contributors'}),
+            satellite: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19}),
+            dark: L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",{maxZoom:19})
+        };
 
-        const map = L.map('map', {
-            center:[25.687,30.841],
-            zoom:16,
-            layers:[baseMaps.osm],
-            zoomControl:true
-        });
+        const map = L.map('map', {
+            center:[25.687,30.841],
+            zoom:16,
+            layers:[baseMaps.osm],
+            zoomControl:true
+        });
 
-        /* Toggle header/sidebar dark class when dark basemap chosen */
-        function setDarkMode(isDark){
-            const sidebar=document.getElementById('sidebar');
-            const header=document.getElementById('header');
-            sidebar.classList.toggle('dark', isDark);
-            header.classList.toggle('dark', isDark);
-        }
-        document.querySelectorAll('input[name="basemap"]').forEach(radio => {
-            radio.addEventListener("change", e => {
-                // إزالة جميع طبقات الأساس الحالية
-                map.eachLayer(l => { if(l instanceof L.TileLayer) map.removeLayer(l); });
-                // إضافة الطبقة الجديدة
-                map.addLayer(baseMaps[e.target.value]);
+        /* Toggle header/sidebar dark class when dark basemap chosen */
+        function setDarkMode(isDark){
+            const sidebar=document.getElementById('sidebar');
+            const header=document.getElementById('header');
+            sidebar.classList.toggle('dark', isDark);
+            header.classList.toggle('dark', isDark);
+        }
+        document.querySelectorAll('input[name="basemap"]').forEach(radio => {
+            radio.addEventListener("change", e => {
+                // إزالة جميع طبقات الأساس الحالية
+                map.eachLayer(l => { if(l instanceof L.TileLayer) map.removeLayer(l); });
+                // إضافة الطبقة الجديدة
+                map.addLayer(baseMaps[e.target.value]);
 
-                // تفعيل وضع الليل
-                setDarkMode(e.target.value === "dark");
+                // تفعيل وضع الليل
+                setDarkMode(e.target.value === "dark");
 
-                // إخفاء أو إظهار طبقة المباني حسب نوع الخريطة
-                if(allLayers["المباني 🏢"]){
-                    if(e.target.value === "satellite"){
-                        map.removeLayer(allLayers["المباني 🏢"]);
-                    } else {
-                        map.addLayer(allLayers["المباني 🏢"]);
-                    }
-                }
-            });
-        });
+                // إخفاء أو إظهار طبقة المباني حسب نوع الخريطة
+                if(allLayers["المباني 🏢"]){
+                    if(e.target.value === "satellite"){
+                        map.removeLayer(allLayers["المباني 🏢"]);
+                    } else {
+                        map.addLayer(allLayers["المباني 🏢"]);
+                    }
+                }
+            });
+        });
 
-        // تغيير لون نص أزرار اختيار الخريطة عند اختيار الخريطة السوداء
-        const basemapLabels = document.querySelectorAll('input[name="basemap"]');
+        // تغيير لون نص أزرار اختيار الخريطة عند اختيار الخريطة السوداء
+        const basemapLabels = document.querySelectorAll('input[name="basemap"]');
 
-        basemapLabels.forEach(radio => {
-            radio.addEventListener('change', e => {
-                basemapLabels.forEach(r => {
-                    const label = r.parentElement;
-                    if(e.target.value === 'dark'){
-                        label.style.color = '#fff';
-                    } else {
-                        label.style.color = '#000';
-                    }
-                });
-            });
-        });
+        basemapLabels.forEach(radio => {
+            radio.addEventListener('change', e => {
+                basemapLabels.forEach(r => {
+                    const label = r.parentElement;
+                    if(e.target.value === 'dark'){
+                        label.style.color = '#fff';
+                    } else {
+                        label.style.color = '#000';
+                    }
+                });
+            });
+        });
 
-        /* --------------
-          Icons (local files expected in repo)
+        /* --------------
+          Icons (local files expected in assets/map_images/)
           -------------- */
-        const icons = {
-            electric: L.icon({iconUrl:"electrictrans.png", iconSize:[26,26]}),
-            networking: L.icon({iconUrl:"networking.png", iconSize:[26,26]}),
-            valve: L.icon({iconUrl:"valve.png", iconSize:[26,26]}),
-            sewer: L.icon({iconUrl:"sewer.png", iconSize:[26,26]}),
-            station: L.icon({iconUrl:"محطة_الرفع-removebg-preview.png", iconSize:[28,28]}),
-            rober: L.icon({iconUrl:"rober.png", iconSize:[28,28]})
-        };
+        const icons = {
+            // 🔑 جميع المسارات تم تحديثها لاستخدام assets/map_images/
+            electric: L.icon({iconUrl:"assets/map_images/electrictrans.png", iconSize:[26,26]}),
+            networking: L.icon({iconUrl:"assets/map_images/networking.png", iconSize:[26,26]}),
+            valve: L.icon({iconUrl:"assets/map_images/valve.png", iconSize:[26,26]}),
+            sewer: L.icon({iconUrl:"assets/map_images/sewer.png", iconSize:[26,26]}),
+            // تم افتراض اسم ملف جديد لمحطة الرفع: sewer_station.png
+            station: L.icon({iconUrl:"assets/map_images/sewer_station.png", iconSize:[28,28]}),
+            rober: L.icon({iconUrl:"assets/map_images/rober.png", iconSize:[28,28]})
+        };
 
-        /* --------------------------
+        /* --------------------------
           Layers metadata (your GeoJSON files)
           -------------------------- */
-        const layersInfo = {
-            "خطوط الكهرباء ⚡": {file:"layers/electric_lines.geojson", color:"#ff0000"},
-            "محولات الكهرباء ⚡": {file:"layers/electric_points.geojson", icon:icons.electric},
-            "خطوط الإنترنت": {file:"layers/landline_lines.geojson", color:"#00cc66"},
-            "نقاط توزيع الإنترنت": {file:"layers/landline_points.geojson", icon:icons.networking},
-            "خطوط المياه 🚰": {file:"layers/water_lines.geojson", color:"#007bff"},
-            "محابس المياه 🚰": {file:"layers/water_points.geojson", icon:icons.valve},
-            "خطوط الصرف الصحي 💧": {file:"layers/Sewer_line.geojson", color:"#800080"},
-            "غرف تفتيش الصرف": {file:"layers/Sewer_points3.geojson", icon:icons.sewer},
-            "غرف غسيل الصرف": {file:"layers/Sewer_points2.geojson", icon:icons.sewer},
-            "غرف صرف صحي": {file:"layers/Sewer_points1.geojson", icon:icons.sewer},
-            "محطة الرفع": {file:"layers/Sewer_station.geojson", icon:icons.station},
-            "المباني 🏢": {file:"layers/buildings.geojson", color:"#DEB887"},
-            "روبير 📍": {file:"layers/rober.geojson", icon:icons.rober}
-        };
+        const layersInfo = {
+            "خطوط الكهرباء ⚡": {file:"layers/electric_lines.geojson", color:"#ff0000"},
+            "محولات الكهرباء ⚡": {file:"layers/electric_points.geojson", icon:icons.electric},
+            "خطوط الإنترنت": {file:"layers/landline_lines.geojson", color:"#00cc66"},
+            "نقاط توزيع الإنترنت": {file:"layers/landline_points.geojson", icon:icons.networking},
+            "خطوط المياه 🚰": {file:"layers/water_lines.geojson", color:"#007bff"},
+            "محابس المياه 🚰": {file:"layers/water_points.geojson", icon:icons.valve},
+            "خطوط الصرف الصحي 💧": {file:"layers/Sewer_line.geojson", color:"#800080"},
+            "غرف تفتيش الصرف": {file:"layers/Sewer_points3.geojson", icon:icons.sewer},
+            "غرف غسيل الصرف": {file:"layers/Sewer_points2.geojson", icon:icons.sewer},
+            "غرف صرف صحي": {file:"layers/Sewer_points1.geojson", icon:icons.sewer},
+            "محطة الرفع": {file:"layers/Sewer_station.geojson", icon:icons.station},
+            "المباني 🏢": {file:"layers/buildings.geojson", color:"#DEB887"},
+            "روبير 📍": {file:"layers/rober.geojson", icon:icons.rober}
+        };
 
-        /* Groups (for UI) */
-        const groups = {
-            "الكهرباء ⚡": ["خطوط الكهرباء ⚡","محولات الكهرباء ⚡"],
-            "الإنترنت": ["خطوط الإنترنت","نقاط توزيع الإنترنت"],
-            "المياه 🚰": ["خطوط المياه 🚰","محابس المياه 🚰"],
-            "الصرف الصحي 💧": ["خطوط الصرف الصحي 💧","غرف تفتيش الصرف","غرف غسيل الصرف","غرف صرف صحي","محطة الرفع"],
-            "المباني والمواقع": ["المباني 🏢","روبير 📍"]
-        };
+        /* Groups (for UI) */
+        const groups = {
+            "الكهرباء ⚡": ["خطوط الكهرباء ⚡","محولات الكهرباء ⚡"],
+            "الإنترنت": ["خطوط الإنترنت","نقاط توزيع الإنترنت"],
+            "المياه 🚰": ["خطوط المياه 🚰","محابس المياه 🚰"],
+            "الصرف الصحي 💧": ["خطوط الصرف الصحي 💧","غرف تفتيش الصرف","غرف غسيل الصرف","غرف صرف صحي","محطة الرفع"],
+            "المباني والمواقع": ["المباني 🏢","روبير 📍"]
+        };
 
-        /* --------------------
+        /* --------------------
           Load GeoJSON layers
           -------------------- */
-        let allLayers = {};
-        let layerBounds = {};
-        let loadedCount = 0;
-        const totalLayers = Object.keys(layersInfo).length;
-        const loaderOverlay = document.getElementById('loaderOverlay');
+        let allLayers = {};
+        let layerBounds = {};
+        let loadedCount = 0;
+        const totalLayers = Object.keys(layersInfo).length;
+        const loaderOverlay = document.getElementById('loaderOverlay');
 
-        function checkAllLoadedAndFinish(){
-            if(loadedCount >= totalLayers){
-                // compute union bounds of all loaded layers
-                let union = null;
-                for(const k in layerBounds){
-                    const b = layerBounds[k];
-                    if(!b || typeof b.isValid !== 'function') continue;
-                    if(b.isValid()){
-                        union = union ? union.extend(b) : L.latLngBounds(b);
-                    }
-                }
-                // if have union, fit to it; otherwise keep default view
-                if(union && union.isValid && union.isValid()){
-                    map.fitBounds(union, {padding:[60,60]});
-                }
-                // hide loader
-                setTimeout(()=> {
-                    loaderOverlay.style.display = 'none';
-                }, 300);
-            }
-        }
+        function checkAllLoadedAndFinish(){
+            if(loadedCount >= totalLayers){
+                // compute union bounds of all loaded layers
+                let union = null;
+                for(const k in layerBounds){
+                    const b = layerBounds[k];
+                    if(!b || typeof b.isValid !== 'function') continue;
+                    if(b.isValid()){
+                        union = union ? union.extend(b) : L.latLngBounds(b);
+                    }
+                }
+                // if have union, fit to it; otherwise keep default view
+                if(union && union.isValid && union.isValid()){
+                    map.fitBounds(union, {padding:[60,60]});
+                }
+                // hide loader
+                setTimeout(()=> {
+                    loaderOverlay.style.display = 'none';
+                }, 300);
+            }
+        }
 
-        for(const [name, info] of Object.entries(layersInfo)){
-            fetch(info.file).then(r=>{
-                if(!r.ok) throw new Error('HTTP '+r.status);
-                return r.json();
-            }).then(data=>{
-                const layer = L.geoJSON(data, {
-                    style: feat=>{
-                        if(name === "المباني 🏢") return {color:"#8B4513", weight:1, fillColor:"#DEB887", fillOpacity:0.4};
-                        return {color: info.color || "#3388ff", weight:2, fillOpacity:0.7};
-                    },
-                    pointToLayer: (feat, latlng) => {
-                        if(info.icon) return L.marker(latlng, {icon: info.icon});
-                        // fallback for points: small circle marker
-                        return L.circleMarker(latlng, {radius:6, fillColor: info.color||'#3388ff', color:'#fff', weight:1, fillOpacity:0.9});
-                    },
-                    onEachFeature: (feat, layerInstance) => {
-                        let html = '';
-                        if(feat.properties){
-                            for(const k in feat.properties){
-                                html += `<b>${k}:</b> ${feat.properties[k]}<br>`;
-                            }
-                        } else {
-                            html = '<i>لا توجد خصائص</i>';
-                        }
-                        layerInstance.bindPopup(html);
-                    }
-                });
+        for(const [name, info] of Object.entries(layersInfo)){
+            fetch(info.file).then(r=>{
+                if(!r.ok) throw new Error('HTTP '+r.status);
+                return r.json();
+            }).then(data=>{
+                const layer = L.geoJSON(data, {
+                    style: feat=>{
+                        if(name === "المباني 🏢") return {color:"#8B4513", weight:1, fillColor:"#DEB887", fillOpacity:0.4};
+                        return {color: info.color || "#3388ff", weight:2, fillOpacity:0.7};
+                    },
+                    pointToLayer: (feat, latlng) => {
+                        if(info.icon) return L.marker(latlng, {icon: info.icon});
+                        // fallback for points: small circle marker
+                        return L.circleMarker(latlng, {radius:6, fillColor: info.color||'#3388ff', color:'#fff', weight:1, fillOpacity:0.9});
+                    },
+                    onEachFeature: (feat, layerInstance) => {
+                        let html = '';
+                        if(feat.properties){
+                            for(const k in feat.properties){
+                                html += `<b>${k}:</b> ${feat.properties[k]}<br>`;
+                            }
+                        } else {
+                            html = '<i>لا توجد خصائص</i>';
+                        }
+                        layerInstance.bindPopup(html);
+                    }
+                });
 
-                allLayers[name] = layer;
-                try{
-                    const b = layer.getBounds();
-                    layerBounds[name] = b && b.isValid && b.isValid() ? b : null;
-                }catch(err){
-                    layerBounds[name] = null;
-                }
+                allLayers[name] = layer;
+                try{
+                    const b = layer.getBounds();
+                    layerBounds[name] = b && b.isValid && b.isValid() ? b : null;
+                }catch(err){
+                    layerBounds[name] = null;
+                }
 
-                // show default layers if desired (like buildings + rober)
-                if(name === "المباني 🏢" || name === "روبير 📍"){
-                    map.addLayer(layer);
-                }
+                // show default layers if desired (like buildings + rober)
+                if(name === "المباني 🏢" || name === "روبير 📍"){
+                    map.addLayer(layer);
+                }
 
-                loadedCount++;
-                checkAllLoadedAndFinish();
-            }).catch(err=>{
-                console.error('فشل تحميل الطبقة:', info.file, err);
-                loadedCount++;
-                checkAllLoadedAndFinish();
-            });
-        }
+                loadedCount++;
+                checkAllLoadedAndFinish();
+            }).catch(err=>{
+                console.error('فشل تحميل الطبقة:', info.file, err);
+                loadedCount++;
+                checkAllLoadedAndFinish();
+            });
+        }
 
-        /* ------------------------------
+        /* ------------------------------
           Build grouped layer list (UI)
           ------------------------------ */
-        const layerGroupsDiv = document.getElementById('layerGroups');
+        const layerGroupsDiv = document.getElementById('layerGroups');
 
-        for(const [groupName, layerNames] of Object.entries(groups)){
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'layer-group collapsed'; // الآن مغلقة افتراضياً
+        for(const [groupName, layerNames] of Object.entries(groups)){
+            const groupDiv = document.createElement('div');
+            groupDiv.className = 'layer-group collapsed'; // الآن مغلقة افتراضياً
 
-            const h4 = document.createElement('h4');
-            h4.textContent = groupName;
-            groupDiv.appendChild(h4);
+            const h4 = document.createElement('h4');
+            h4.textContent = groupName;
+            groupDiv.appendChild(h4);
 
-            const itemsDiv = document.createElement('div');
-            itemsDiv.className = 'group-items';
+            const itemsDiv = document.createElement('div');
+            itemsDiv.className = 'group-items';
 
-            layerNames.forEach(layerName=>{
-                const item = document.createElement('div');
-                item.className = 'layer-item';
-                item.textContent = layerName;
+            layerNames.forEach(layerName=>{
+                const item = document.createElement('div');
+                item.className = 'layer-item';
+                item.textContent = layerName;
 
-                item.addEventListener('click', ()=>{
-                    const layer = allLayers[layerName];
-                    if(!layer){
-                        // not yet loaded
-                        item.style.background = '#fff3cd';
-                        item.innerHTML = layerName + ' (جارٍ التحميل...)';
-                        return;
-                    }
-                    if(map.hasLayer(layer)){
-                        map.removeLayer(layer);
-                        item.style.background = '#f5f5f5';
-                    } else {
-                        map.addLayer(layer);
-                        item.style.background = '#e0ffe0';
-                        // fit to this layer if bounds available
-                        const b = layerBounds[layerName];
-                        if(b && b.isValid && b.isValid()){
-                            map.fitBounds(b, {padding:[60,60]});
-                        }
-                    }
-                });
+                item.addEventListener('click', ()=>{
+                    const layer = allLayers[layerName];
+                    if(!layer){
+                        // not yet loaded
+                        item.style.background = '#fff3cd';
+                        item.innerHTML = layerName + ' (جارٍ التحميل...)';
+                        return;
+                    }
+                    if(map.hasLayer(layer)){
+                        map.removeLayer(layer);
+                        item.style.background = '#f5f5f5';
+                    } else {
+                        map.addLayer(layer);
+                        item.style.background = '#e0ffe0';
+                        // fit to this layer if bounds available
+                        const b = layerBounds[layerName];
+                        if(b && b.isValid && b.isValid()){
+                            map.fitBounds(b, {padding:[60,60]});
+                        }
+                    }
+                });
 
-                itemsDiv.appendChild(item);
-            });
+                itemsDiv.appendChild(item);
+            });
 
-            groupDiv.appendChild(itemsDiv);
-            layerGroupsDiv.appendChild(groupDiv);
+            groupDiv.appendChild(itemsDiv);
+            layerGroupsDiv.appendChild(groupDiv);
 
-            // collapse/expand group
-            h4.addEventListener('click', ()=>{
-                groupDiv.classList.toggle('collapsed');
-            });
-        }
+            // collapse/expand group
+            h4.addEventListener('click', ()=>{
+                groupDiv.classList.toggle('collapsed');
+            });
+        }
 
-        /* -------------------------
+        /* -------------------------
           Controls: show/hide/reset
           ------------------------- */
-        document.getElementById('showAll').addEventListener('click', ()=>{
-            for(const k in allLayers){
-                if(allLayers[k] && !map.hasLayer(allLayers[k])) map.addLayer(allLayers[k]);
-            }
-        });
-        document.getElementById('hideAll').addEventListener('click', ()=>{
-            for(const k in allLayers){
-                if(allLayers[k] && map.hasLayer(allLayers[k])) map.removeLayer(allLayers[k]);
-            }
-        });
-        document.getElementById('resetMap').addEventListener('click', ()=>{
-            map.setView([25.687,30.841], 16);
-        });
+        document.getElementById('showAll').addEventListener('click', ()=>{
+            for(const k in allLayers){
+                if(allLayers[k] && !map.hasLayer(allLayers[k])) map.addLayer(allLayers[k]);
+            }
+        });
+        document.getElementById('hideAll').addEventListener('click', ()=>{
+            for(const k in allLayers){
+                if(allLayers[k] && map.hasLayer(allLayers[k])) map.removeLayer(allLayers[k]);
+            }
+        });
+        document.getElementById('resetMap').addEventListener('click', ()=>{
+            map.setView([25.687,30.841], 16);
+        });
 
-        /* -------------------------
+        /* -------------------------
           Sidebar open/close and clicks
           ------------------------- */
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('toggleSidebar');
+        const sidebar = document.getElementById('sidebar');
+        const toggleBtn = document.getElementById('toggleSidebar');
 
-        toggleBtn.addEventListener('click', (e)=>{
-            e.stopPropagation();
-            sidebar.classList.toggle('hidden');
-            const expanded = !sidebar.classList.contains('hidden');
-            toggleBtn.setAttribute('aria-expanded', expanded);
-            sidebar.setAttribute('aria-hidden', !expanded);
-        });
-        // prevent clicks inside sidebar from closing it
-        sidebar.addEventListener('click', e=> e.stopPropagation());
-        // close sidebar when clicking outside
-        document.addEventListener('click', ()=>{
-            if(!sidebar.classList.contains('hidden')){
-                sidebar.classList.add('hidden');
-                sidebar.setAttribute('aria-hidden','true');
-                toggleBtn.setAttribute('aria-expanded','false');
-            }
-        });
+        toggleBtn.addEventListener('click', (e)=>{
+            e.stopPropagation();
+            sidebar.classList.toggle('hidden');
+            const expanded = !sidebar.classList.contains('hidden');
+            toggleBtn.setAttribute('aria-expanded', expanded);
+            sidebar.setAttribute('aria-hidden', !expanded);
+        });
+        // prevent clicks inside sidebar from closing it
+        sidebar.addEventListener('click', e=> e.stopPropagation());
+        // close sidebar when clicking outside
+        document.addEventListener('click', ()=>{
+            if(!sidebar.classList.contains('hidden')){
+                sidebar.classList.add('hidden');
+                sidebar.setAttribute('aria-hidden','true');
+                toggleBtn.setAttribute('aria-expanded','false');
+            }
+        });
 
-        /* Accessibility: trap focus inside sidebar when opened (basic) */
-        sidebar.addEventListener('keydown', (e)=>{
-            if(e.key === 'Escape'){
-                sidebar.classList.add('hidden');
-                sidebar.setAttribute('aria-hidden','true');
-                toggleBtn.setAttribute('aria-expanded','false');
-            }
-        });
+        /* Accessibility: trap focus inside sidebar when opened (basic) */
+        sidebar.addEventListener('keydown', (e)=>{
+            if(e.key === 'Escape'){
+                sidebar.classList.add('hidden');
+                sidebar.setAttribute('aria-hidden','true');
+                toggleBtn.setAttribute('aria-expanded','false');
+            }
+        });
 
-        /* Ensure loader is hidden if layers take too long (failsafe after 12s) */
-        setTimeout(()=>{
-            const overlay=document.getElementById('loaderOverlay');
-            if(overlay && overlay.style.display !== 'none'){
-                overlay.style.display = 'none';
-            }
-        }, 12000);
-        
-        // 🖨️ وظيفة زر الطباعة
-        document.getElementById('printMapBtn').addEventListener('click', ()=>{ window.print(); });
+        /* Ensure loader is hidden if layers take too long (failsafe after 12s) */
+        setTimeout(()=>{
+            const overlay=document.getElementById('loaderOverlay');
+            if(overlay && overlay.style.display !== 'none'){
+                overlay.style.display = 'none';
+            }
+        }, 12000);
+        
+        // 🖨️ وظيفة زر الطباعة
+        document.getElementById('printMapBtn').addEventListener('click', ()=>{ window.print(); });
 
 
-        // 🔄 تدوير الخريطة يدويًا (مع سهم الشمال)
-        let currentRotation = 0; // الزاوية الحالية للخريطة بالدرجات
-        const mapContainer = document.getElementById("map");
-        const northArrow = document.getElementById("northArrow");
+        // 🔄 تدوير الخريطة يدويًا (مع سهم الشمال)
+        let currentRotation = 0; // الزاوية الحالية للخريطة بالدرجات
+        const mapContainer = document.getElementById("map");
+        const northArrow = document.getElementById("northArrow");
 
-        // دالة لتطبيق الدوران على الخريطة والسهم
-        function applyRotation(angle) {
-            currentRotation = angle % 360;
-            mapContainer.style.transform = `rotate(${currentRotation}deg)`;
-            northArrow.style.transform = `rotate(${-currentRotation}deg)`; // عكس دوران الخريطة
-        }
+        // دالة لتطبيق الدوران على الخريطة والسهم
+        function applyRotation(angle) {
+            currentRotation = angle % 360;
+            mapContainer.style.transform = `rotate(${currentRotation}deg)`;
+            northArrow.style.transform = `rotate(${-currentRotation}deg)`; // عكس دوران الخريطة
+        }
 
-        // عند الضغط على زر الشمال تعود الخريطة للوضع الطبيعي
-        northArrow.addEventListener("click", () => {
-            applyRotation(0);
-        });
+        // عند الضغط على زر الشمال تعود الخريطة للوضع الطبيعي
+        northArrow.addEventListener("click", () => {
+            applyRotation(0);
+        });
 
-        // 🔁 يمكن إضافة دوران عبر أزرار أو لوحة المفاتيح (اختياري)
-        document.addEventListener("keydown", e => {
-            if (e.key === "ArrowLeft") applyRotation(currentRotation - 10); // تدوير يسار
-            if (e.key === "ArrowRight") applyRotation(currentRotation + 10); // تدوير يمين
-        });
-        // -------------------------------------------------
-        // 🔑 أزرار الصفحة الرئيسية وتسجيل الخروج (المعدلة)
-        // -------------------------------------------------
+        // 🔁 يمكن إضافة دوران عبر أزرار أو لوحة المفاتيح (اختياري)
+        document.addEventListener("keydown", e => {
+            if (e.key === "ArrowLeft") applyRotation(currentRotation - 10); // تدوير يسار
+            if (e.key === "ArrowRight") applyRotation(currentRotation + 10); // تدوير يمين
+        });
+        // -------------------------------------------------
+        // 🔑 أزرار الصفحة الرئيسية وتسجيل الخروج (المعدلة)
+        // -------------------------------------------------
 
-        // إعادة التوجيه للداشبورد عند الضغط على "الرئيسية"
-        document.getElementById("homeBtn").addEventListener("click", async () => {
-             // 🔑 استخدام دالة checkUserSession للتحقق من المستخدم الحالي
-            const user = await checkUserSession(); 
+        // إعادة التوجيه للداشبورد عند الضغط على "الرئيسية"
+        document.getElementById("homeBtn").addEventListener("click", async () => {
+             // 🔑 استخدام دالة checkUserSession للتحقق من المستخدم الحالي
+            const user = await checkUserSession(); 
 
-            if(!user || !user.role){
-                window.location.href = "index.html";
-                return;
-            }
+            if(!user || !user.role){
+                window.location.href = "index.html";
+                return;
+            }
 
-            switch(user.role){
-                case "admin":
-                    window.location.href = "dashboard.html";
-                    break;
-                case "user":
-                    window.location.href = "user.html";
-                    break;
-                case "guest":
-                    window.location.href = "guest.html";
-                    break;
-                default:
-                    window.location.href = "index.html";
-            }
-        });
+            switch(user.role){
+                case "admin":
+                    window.location.href = "dashboard.html";
+                    break;
+                case "user":
+                    window.location.href = "user.html";
+                    break;
+                case "guest":
+                    window.location.href = "guest.html";
+                    break;
+                default:
+                    window.location.href = "index.html";
+            }
+        });
 
-        // تسجيل الخروج
-        document.getElementById("logoutBtn").addEventListener("click", () => {
-            logout(); // 🔑 استخدام دالة logout من auth.js
-        });
-    }
+        // تسجيل الخروج
+        document.getElementById("logoutBtn").addEventListener("click", () => {
+            logout(); // 🔑 استخدام دالة logout من auth.js
+        });
+    }
 
 </script>
 </body>
