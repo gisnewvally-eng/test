@@ -10,46 +10,129 @@
 <script src="assets/js/auth.js"></script>
 
 <style>
-/* ---------------------------------
-   CSS (تم الاحتفاظ به)
-   --------------------------------- */
-body { margin:0; font-family:sans-serif; direction:rtl; }
-/* Header */
-header { background: linear-gradient(90deg,#00F260,#0575E6); color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; position: fixed; top:0; left:0; right:0; z-index:1001; }
-header span { font-weight:bold; }
-header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; }
-
-/* sidebar humbarger */
-#toggleSidebar:hover {
-    background: #26d0ce;
+/* =======================
+   هيدر ثابت ومتناسق
+======================= */
+header {
+  background: linear-gradient(90deg,#00F260,#0575E6);
+  color: white;
+  padding: 15px 25px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1001;
+  flex-wrap: wrap; /* لتجنب التكدس على شاشات صغيرة */
 }
 
+/* النص في الهيدر */
+header span { font-weight: bold; font-size: 1rem; }
+header a { color: white; text-decoration: none; font-weight: bold; margin-left: 15px; }
+
+/* القسم الأيمن واليسار */
+header > div:first-child { order: 2; margin-left: auto; } /* اسم المستخدم على اليمين */
+header nav { order: 1; } /* زر تسجيل الخروج على اليسار */
+
+/* زر Sidebar */
+#toggleSidebar {
+  position: fixed;
+  top: 80px;
+  left: 0;
+  width: 30px;
+  height: 30px;
+  background: #1a2980;
+  color: white;
+  font-size: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 0 5px 5px 0;
+  cursor: pointer;
+  z-index: 1100;
+  transition: background 0.3s;
+}
+#toggleSidebar:hover { background: #26d0ce; }
+
 /* Sidebar */
-.sidebar { width:220px; background:#2c3e50; color:white; position:fixed; top:70px; left:0; height:calc(100% - 70px); padding:20px; overflow-y:auto; transition: transform 0.3s ease; }
+.sidebar {
+  width: 220px;
+  background: #2c3e50;
+  color: white;
+  position: fixed;
+  top: 70px;
+  left: 0;
+  height: calc(100% - 70px);
+  padding: 20px;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
 .sidebar.hidden { transform: translateX(-250px); }
-.sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; padding: 5px; }
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  display: block;
+  margin: 12px 0;
+  padding: 5px;
+  transition: padding-left 0.3s, background 0.3s;
+}
 .sidebar a:hover { background:#34495e; padding-left:10px; }
 
-/* Main content */
-.main-content { margin-top:70px; margin-left:240px; padding:30px; padding-bottom:60px; }
-
-/* Admin sections */
-.admin-section { display:none; margin-top:20px; padding:10px; border:1px solid #ccc; background:#f8f8f8; border-radius:5px; }
-.admin-section input, .admin-section select { width:70%; padding:8px; margin-right:5px; border-radius: 4px; border: 1px solid #ccc; margin-bottom: 5px;}
-.admin-section button { padding:8px 15px; margin-top:5px; cursor:pointer; background: #004b8d; color: white; border: none; border-radius: 4px; }
-.admin-section button:hover { opacity: 0.9; }
-
-/* User list */
-#usersList div { margin:8px 0; padding:10px; background:#e0e0e0; color:#333; display:flex; justify-content:space-between; align-items:center; border-radius: 4px; }
-#usersList button { padding:5px 10px; cursor:pointer; background: #c0392b; color: white; border: none; }
-#usersList button:hover { background: #e74c3c; }
-
-/* Visits chart */
-#visitsChart { width:100%; max-width:600px; height:300px; }
+/* المحتوى الرئيسي */
+.main-content {
+  margin-top: 70px;
+  margin-left: 240px;
+  padding: 30px;
+  padding-bottom: 60px;
+  transition: margin-left 0.3s;
+}
 
 /* Footer */
-footer { position: fixed; bottom:0; left:0; right:0; background: linear-gradient(90deg,#00F260,#0575E6); color:#fff; display:flex; flex-direction: column; align-items:center; justify-content:center; text-align:center; font-weight:700; padding:6px 0; z-index:1000; }
+footer {
+  position: fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background: linear-gradient(90deg,#00F260,#0575E6);
+  color:#fff;
+  display:flex;
+  flex-direction: column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-weight:700;
+  padding:6px 0;
+  z-index:1000;
+}
 footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
+
+/* =======================
+   متجاوب
+======================= */
+@media (max-width: 1024px) {
+  .main-content { margin-left: 220px; padding: 20px; }
+}
+
+@media (max-width: 768px) {
+  header { flex-direction: column; align-items: flex-start; padding: 10px 15px; }
+  header > div:first-child { margin-left: 0; order: 1; }
+  header nav { order: 2; margin-top: 5px; }
+  
+  .main-content { margin-left: 0; padding: 15px; }
+  .sidebar { width: 200px; top: 70px; height: calc(100% - 70px); }
+  #toggleSidebar { top: 70px; }
+}
+
+@media (max-width: 480px) {
+  header { padding: 8px 10px; }
+  header span { font-size: 0.9rem; }
+  .sidebar { width: 180px; padding: 15px; }
+  .main-content { padding: 10px; }
+  #toggleSidebar { width: 28px; height: 28px; font-size: 20px; top: 70px; }
+}
+
 </style>
 </head>
 <body>
@@ -216,23 +299,29 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 
         // ===== إضافة مستخدم جديد =====
         document.getElementById("addUserBtn").onclick = async function() {
-            const email = document.getElementById("newUserEmail").value.trim();
-            const password = document.getElementById("newPassword").value;
-            const role = document.getElementById("newRole").value;
+    const name = document.getElementById("newUserName").value.trim(); // اسم المستخدم
+    const email = document.getElementById("newUserEmail").value.trim();
+    const password = document.getElementById("newPassword").value;
+    const role = document.getElementById("newRole").value;
 
-            if(!email || !password){ alert("املأ جميع الحقول"); return; }
-            
-            // 🔑 استخدام دالة addUser من auth.js
-            const success = await addUser(email, password, role);
+    if(!name || !email || !password){ 
+        alert("املأ جميع الحقول"); 
+        return; 
+    }
+    
+    // 🔑 استخدام دالة addUser من auth.js مع الاسم الجديد
+    const success = await addUser(name, email, password, role); 
 
-            if(success){
-                alert("تم إضافة المستخدم بنجاح!");
-                document.getElementById("newUserEmail").value = "";
-                document.getElementById("newPassword").value = "";
-                await loadUsersList(); // إعادة تحميل القائمة
-                await updateVisitsChart(); // تحديث الشارت
-            }
-        };
+    if(success){
+        alert("تم إضافة المستخدم بنجاح!");
+        document.getElementById("newUserName").value = "";
+        document.getElementById("newUserEmail").value = "";
+        document.getElementById("newPassword").value = "";
+        await loadUsersList(); // إعادة تحميل القائمة
+        await updateVisitsChart(); // تحديث الشارت
+    }
+};
+
 
         // ===== تسجيل الخروج =====
         document.getElementById("logoutLink").onclick = (e) => { 
@@ -256,3 +345,4 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 </script>
 </body>
 </html>
+
