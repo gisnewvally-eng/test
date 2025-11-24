@@ -47,14 +47,15 @@
 </main>
 
 <script>
+// روابط الصور العامة
 const mapImages = {
-  "سكنية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/sign/map-type-images/images/residential.png",
-  "صناعية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/sign/map-type-images/images/industrial.png",
-  "تجارية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/sign/map-type-images/images/commercial.png",
-  "خدمية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/sign/map-type-images/images/services.png"
+  "سكنية": "https://xemily-public.s3.amazonaws.com/residential.png",
+  "صناعية": "https://xemily-public.s3.amazonaws.com/industrial.png",
+  "تجارية": "https://xemily-public.s3.amazonaws.com/commercial.png",
+  "خدمية": "https://xemily-public.s3.amazonaws.com/services.png"
 };
 
-// تحديث حقل في Supabase
+// تحديث أي حقل في Supabase
 async function updateMapField(mapId, fieldName, value) {
   const obj = {}; obj[fieldName] = value;
   const { error } = await supabaseClient.from('maps').update(obj).eq('id', mapId);
@@ -72,6 +73,7 @@ async function loadMapsGrid(){
     const card = document.createElement("div");
     card.className = "map-card";
 
+    // صورة الخريطة
     const img = document.createElement("img");
     img.src = mapImages[map.type] || mapImages["سكنية"];
     card.appendChild(img);
@@ -79,28 +81,27 @@ async function loadMapsGrid(){
     // اختيار نوع الخريطة
     const typeSelect = document.createElement("select");
     ["سكنية","صناعية","تجارية","خدمية"].forEach(t=>{
-      const opt = document.createElement("option");
-      opt.value = t; opt.textContent = t;
-      if(map.type === t) opt.selected = true;
+      const opt = document.createElement("option"); opt.value=t; opt.textContent=t;
+      if(map.type===t) opt.selected=true;
       typeSelect.appendChild(opt);
     });
-    typeSelect.onchange = async e => {
+    typeSelect.onchange = async e=>{
       const type = e.target.value;
       img.src = mapImages[type];
-      await updateMapField(map.id, 'type', type);
+      await updateMapField(map.id,'type',type);
     };
     card.appendChild(typeSelect);
 
     // اسم الخريطة
     const nameInput = document.createElement("input");
     nameInput.type="text"; nameInput.value=map.name||""; nameInput.placeholder="اسم الخريطة";
-    nameInput.onchange = e => updateMapField(map.id, 'name', e.target.value);
+    nameInput.onchange = e=>updateMapField(map.id,'name',e.target.value);
     card.appendChild(nameInput);
 
     // رابط الخريطة
     const urlInput = document.createElement("input");
     urlInput.type="text"; urlInput.value=map.url||""; urlInput.placeholder="رابط الخريطة";
-    urlInput.onchange = e => updateMapField(map.id, 'url', e.target.value);
+    urlInput.onchange = e=>updateMapField(map.id,'url',e.target.value);
     card.appendChild(urlInput);
 
     // مربعات الأدوار
@@ -125,7 +126,7 @@ async function loadMapsGrid(){
     // زر حذف
     const delBtn = document.createElement("button");
     delBtn.textContent="حذف الخريطة";
-    delBtn.onclick=async ()=>{
+    delBtn.onclick = async ()=>{
       if(confirm("هل تريد حذف هذه الخريطة نهائياً؟")){
         const success = await deleteMap(map.id);
         if(success){ alert("تم الحذف!"); loadMapsGrid(); }
@@ -142,11 +143,11 @@ async function addNewMap(){
   const name = prompt("أدخل اسم الخريطة الجديدة:");
   if(!name) return;
   const type = prompt("اختر نوع الخريطة: سكنية، صناعية، تجارية، خدمية","سكنية");
-  const success = await addMap(name,"https://placeholder-map-link.com",[ "admin" ], type);
+  const success = await addMap(name,"https://placeholder-map-link.com",["admin"],type);
   if(success){ alert(`تمت إضافة الخريطة "${name}" بنجاح!`); loadMapsGrid(); }
 }
 
-// تحميل الصفحة
+// تحميل الصفحة وحمايتها
 window.onload = async ()=>{
   const userProfile = await protectPage();
   if(!userProfile) return;
@@ -156,5 +157,6 @@ window.onload = async ()=>{
   document.getElementById("addMapBtn").onclick = addNewMap;
 };
 </script>
+
 </body>
 </html>
