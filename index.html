@@ -8,480 +8,254 @@
 <script src="assets/js/auth.js"></script>
 
  <style>
-
-  header {
-
+/* =======================
+   هيدر ثابت بالصفحة
+======================= */
+header {
   display: flex;
-
-  flex-direction: row;       /* ترتيب أفقي */
-
-  justify-content: space-between; /* المسافة بين الجهتين */
-
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
-
-  direction: rtl;            /* لضبط Flexbox بغض النظر عن RTL للصفحة */
-
+  direction: rtl;
   padding: 15px 25px;
-
   background: linear-gradient(90deg, #26D0CE, #1A2980);
-
   color: white;
-
   position: fixed;
-
   top: 0;
-
   left: 0;
-
   right: 0;
-
   z-index: 1001;
-
 }
 
-
-
+/* القسم الأيمن (لوجو + نص) */
 .header-right {
-
   display: flex;
-
   align-items: center;
-
-  gap: 10px; /* المسافة بين اللوجو والنص */
-
+  gap: 10px;
+  margin-left: auto; /* يدفع القسم لليمين */
 }
 
+/* القسم الأيسر (الصفحة الشخصية) */
 .header-left {
-
   display: flex;
-
   align-items: center;
-
 }
 
+/* نص اللوجو */
 .logo-text {
-
   font-weight: bold;
-
   font-size: 18px;
-
 }
 
-
-
+/* زر الصفحة الشخصية */
 .user-dashboard {
-
-  display: none; /* يظهر فقط بعد تسجيل الدخول */
-
+  display: none;
   color: white;
-
   background: #26d0ce;
-
   padding: 8px 15px;
-
   border-radius: 6px;
-
   text-decoration: none;
-
   font-weight: bold;
-
   transition: 0.3s;
-
-  margin-right: auto;
-
 }
-
-
 
 .user-dashboard:hover {
-
   background: #1a2980;
-
-}
-
-
-
-  .logo-bg {
-
-  background: #ffffff;       /* دائرة بيضاء */
-
-  padding: 8px;              /* مساحة داخلية لتظهر الدائرة */
-
-  border-radius: 50%;        /* يجعل الخلفية دائرية */
-
-  height: 45px;              /* نفس ارتفاع اللوجو */
-
-  width: 45px;               /* عرض مساوي للارتفاع ليصبح الشكل دائرياً */
-
-  object-fit: contain;       /* يحافظ على شكل الصورة داخل الدائرة */
-
-  box-shadow: 0 0 6px rgba(0,0,0,0.2); /* ظل خفيف - اختياري */
-
-}
-
-
-
-  .header-logo {
-
-  height: 45px;        /* مقاس مناسب للهيدر */
-
-  margin-left: 15px;   /* مسافة بسيطة بين اللوجو والنص */
-  margin-right: 0;  /* يضمن تواجدها أقصى اليمين */
-}
-
-
-
-.content {
-
-  position: absolute;
-
-  top: 50%;
-
-  left: 50%;
-
-  transform: translate(-50%, -50%);
-
-  text-align: center;
-
-  background: rgba(0, 0, 0, 0.4); /* خلفية شبه شفافة */
-
   color: #fff;
+}
 
-  padding: 20px 40px;
+/* خلفية اللوجو دائرية */
+.logo-bg {
+  background: #ffffff;
+  padding: 8px;
+  border-radius: 50%;
+  height: 45px;
+  width: 45px;
+  object-fit: contain;
+  box-shadow: 0 0 6px rgba(0,0,0,0.2);
+}
 
+/* صورة اللوجو */
+.header-logo {
+  height: 45px;
+  width: 45px;
+  margin-left: 15px;
+  margin-right: 0;
+}
+
+/* =======================
+   المحتوى النصي المركزي
+======================= */
+.content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  background: rgba(0, 0, 0, 0.4);
+  color: #fff;
+  padding: 3vw 5vw;
   border-radius: 12px;
-
   max-width: 90%;
-
 }
 
-
-
+/* زر تسجيل الدخول */
 .login-btn {
-
   display: inline-block;
-
-  background: #007bff; /* اللون الجديد */
-
-  color: #fff;          /* لون النص */
-
+  background: #007bff;
+  color: #fff;
   padding: 12px 25px;
-
   border-radius: 8px;
-
   text-decoration: none;
-
   font-weight: bold;
-
   margin-top: 15px;
-
   transition: 0.3s;
-
 }
-
-
 
 .login-btn:hover {
-
-  background: #0056b3; /* لون عند المرور */
-
+  background: #0056b3;
   transform: scale(1.05);
-
 }
 
-
-
-/* السلايدر ممتد من أسفل الهيدر وحتى قبل الفوتر بـ30px */
-
+/* =======================
+   السلايدر
+======================= */
 .hero-slider {
-
   position: relative;
-
   width: 100%;
-
-  height: calc(100vh - 60px - 30px); /* 60px تقريبا ارتفاع الهيدر + 30px قبل الفوتر */
-
+  height: calc(100vh - 60px - 30px);
+  margin-top: 60px; /* أسفل الهيدر */
   overflow: hidden;
-
 }
-
-
 
 /* الصور داخل السلايدر */
-
-  .hero-slider {
-
-  margin-top: 60px; /* إزاحة السلايدر أسفل الهيدر */
-
-}
-
 .hero-slider .slides img {
-
   width: 100%;
-
   height: 100%;
-
   object-fit: contain;
-
-  background: #000; /* يعطي خلفية مناسبة خلف الصورة */
-
+  background: #000;
   position: absolute;
-
-  top:0; left:0;
-
+  top:0;
+  left:0;
   opacity: 0;
-
   transition: opacity 0.6s ease-in-out;
-
 }
-
-
 
 .hero-slider .slides img.active {
-
   opacity: 1;
-
 }
-
-
 
 /* النص على السلايدر */
-
 .hero-slider .hero-text {
-
   position: absolute;
-
   top: 35%;
-
   right: 10%;
-
   color: #fff;
-
-  font-size: 5vw;
-
+  font-size: 4vw;
   text-shadow: 0 0 10px black;
-
-  background: rgba(0,0,0,0.5); /* خلفية شبه شفافة للنص */
-
+  background: rgba(0,0,0,0.5);
   backdrop-filter: blur(6px);
-
   padding: 8px 15px;
-
   border-radius: 8px;
-
-}
-
-
-
-/* متجاوب */
-
-@media (max-width:768px){
-
-  .hero-slider .hero-text { font-size:6vw; top:30%; right:5%; }
-
-}
-
-@media (max-width:480px){
-
-  .hero-slider {
-
-    height: calc(100vh - 55px);
-
-  }
-
-}
-
-
-
-@media (max-width:480px){
-
-  .hero-slider { height: calc(100vh - 60px - 30px); }
-
-  .hero-slider .hero-text { font-size:7vw; top:25%; }
-
-}
-
-
-
-header span { font-weight:bold; }
-
-header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; z-index:1002; }
-
-/* متجاوب للموبايل */
-
-@media (max-width: 768px) {
-
-  .logo-text { font-size: 16px; }
-
-  .header-logo { height: 40px; width: 40px; }
-
-  .user-dashboard { padding: 6px 12px; font-size: 14px; }
-
-}
-
-
-
-@media (max-width: 480px) {
-
-  header { padding: 10px 15px; }
-
-  .logo-text { font-size: 14px; }
-
-  .header-logo { height: 35px; width: 35px; }
-
-  .user-dashboard { padding: 5px 10px; font-size: 13px; }
-
 }
 
 /* أزرار السلايدر */
-
 .hero-slider button.prev-slide,
-
 .hero-slider button.next-slide {
-
   position: absolute;
-
   top: 50%;
-
   transform: translateY(-50%);
-
   background: rgba(0,0,0,0.5);
-
   color: #fff;
-
   border: none;
-
   font-size: 2.5rem;
-
   padding: 0 12px;
-
   cursor: pointer;
-
   border-radius: 50%;
-
   z-index: 10;
-
 }
 
 .hero-slider button.prev-slide { left: 10px; }
-
 .hero-slider button.next-slide { right: 10px; }
-
-
 
 .hero-slider button:hover { background: rgba(0,0,0,0.8); }
 
-
-
 /* نقاط التنقل */
-
 .slide-dots {
-
   position: absolute;
-
   bottom: 10px;
-
   left: 50%;
-
   transform: translateX(-50%);
-
   display: flex;
-
   gap: 8px;
-
 }
 
 .slide-dots span {
-
   width: 12px;
-
   height: 12px;
-
   background: rgba(255,255,255,0.6);
-
   border-radius: 50%;
-
   cursor: pointer;
-
   transition: background 0.3s;
-
 }
 
 .slide-dots span.active { background: #ffcc00; }
 
-  
-
-.user-dashboard {
-
-  display: none; /* افتراضيًا مخفي */
-
-  margin-left: auto; /* جهة اليسار */
-
-  color: white;
-
-  background: #26d0ce;
-
-  padding: 8px 15px;
-
-  border-radius: 6px;
-
-  text-decoration: none;
-
-  font-weight: bold;
-
-  transition: 0.3s;
-
-}
-
-
-
-.user-dashboard:hover {
-
-  background: #1a2980;
-
-  color: #fff;
-
-}
-
-
-
-
-
-/* Footer ثابت */
-
+/* =======================
+   الفوتر ثابت
+======================= */
 footer {
-
   position: fixed;
-
   bottom: 0;
-
   left: 0;
-
   right: 0;
-
   background: linear-gradient(90deg, #26D0CE, #1A2980);
-
   color: #fff;
-
   display: flex;
-
   flex-direction: column;
-
   align-items: center;
-
   justify-content: center;
-
   text-align: center;
-
   font-weight: 700;
-
   padding: 6px 0;
-
   z-index: 1000;
-
 }
 
 footer .line2 { font-weight: 600; font-size: 13px; margin-top: 2px; }
+
+/* =======================
+   النصوص وروابط الهيدر
+======================= */
+header span { font-weight:bold; }
+header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; z-index:1002; }
+
+/* =======================
+   متجاوب
+======================= */
+@media (max-width: 1024px) {
+  .hero-slider .hero-text { font-size: 5vw; }
+}
+
+@media (max-width: 768px){
+  .hero-slider .hero-text { font-size: 6vw; top: 30%; right: 5%; padding:6px 12px; }
+  .logo-text { font-size: 16px; }
+  .header-logo { height: 40px; width: 40px; }
+  .user-dashboard { padding: 6px 12px; font-size: 14px; }
+}
+
+@media (max-width: 480px){
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 10px 15px;
+  }
+  .header-right, .header-left { width: 100%; justify-content: space-between; }
+  .hero-slider { height: calc(100vh - 55px); }
+  .hero-slider .hero-text { font-size: 7vw; top:25%; padding:4px 8px; }
+  .logo-text { font-size: 14px; }
+  .header-logo { height: 35px; width: 35px; }
+  .user-dashboard { padding: 5px 10px; font-size: 13px; }
+}
 
 </style>
 </head>
@@ -633,6 +407,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 </body>
 </html>
+
 
 
 
