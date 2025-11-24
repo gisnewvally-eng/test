@@ -310,3 +310,18 @@ async function deleteMap(mapId) {
 supabaseClient.auth.onAuthStateChange((event, session) => {
     if(!session) localStorage.removeItem("sessionUser"); 
 });
+
+// ------------------ تصدير الدوال للاستخدام العام ------------------
+
+// يجب جعل هذه الدوال متاحة عالمياً لملف HTML
+window.login = login;
+window.logout = logout;
+window.protectPage = protectPage;
+window.getVisitStats = getVisitStats;
+window.getUsers = getUsers;
+window.loadUsersList = loadUsersList;
+window.deleteUser = deleteUser;
+window.getAccessibleMaps = getAccessibleMaps;
+window.addMap = addMap;
+window.deleteMap = deleteMap;
+// ... وأي دالة أخرى تحتاج لاستدعائها من HTML مباشرة.
