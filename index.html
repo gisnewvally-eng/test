@@ -587,7 +587,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const welcomeTitle = document.getElementById('welcome-title');
 
     // 🔑 نستخدم دالة checkUserSession() للتحقق الموثوق من الجلسة
-    const userProfile = await protectPage(); // ✅ صحيح - هذا هو الاسم الموجود في auth.js
+    const userProfile = await checkSessionOnly(); // ✅ صحيح - هذا هو الاسم الموجود في auth.js
     if (userProfile) {
         // المستخدم مسجل الدخول
         if (loginBtn) loginBtn.style.display = "none"; // إخفاء زر تسجيل الدخول
@@ -633,5 +633,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 </body>
 </html>
+
 
 
