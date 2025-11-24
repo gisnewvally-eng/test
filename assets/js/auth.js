@@ -305,7 +305,40 @@ async function deleteMap(mapId) {
 
     return true;
 }
+/**
+ * 🔍 دالة للتحقق من الجلسة وجلب البروفايل دون إعادة توجيه (للصفحات العامة مثل index.html)
+ * @returns {Promise<Object | null>} - بروفايل المستخدم إذا كان مسجلاً، أو null
+ */
+async function checkSessionOnly() {
+    // 1. التحقق من المستخدم في Supabase Auth
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
+    if (!user) {
+        return null; // ❌ لا يوجد إعادة توجيه هنا.
+    }
+    
+    // 2. جلب بيانات البروفايل والدور (كما تفعل protectPage)
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("role, username, name") 
+        .eq("id", user.id)
+        .single();
+
+    if (error || !profile) {
+        console.error("Profile not found for authenticated user.");
+        return null;
+    }
+    
+    // تسجيل الزيارة (اختياري، يتم تنفيذه الآن عند كل تحميل للصفحة مع جلسة صالحة)
+    trackVisit(user.id); 
+
+    return { 
+        ...profile, 
+        email: user.email, 
+        // نضمن وجود خاصية الاسم لتجنب خطأ إذا لم تكن موجودة في جدول profiles
+        name: profile.name || profile.username || user.email.split('@')[0]
+    };
+}
 // ------------------ مراقبة الجلسة ------------------
 supabaseClient.auth.onAuthStateChange((event, session) => {
     if(!session) localStorage.removeItem("sessionUser"); 
@@ -325,3 +358,4 @@ window.getAccessibleMaps = getAccessibleMaps;
 window.addMap = addMap;
 window.deleteMap = deleteMap;
 // ... وأي دالة أخرى تحتاج لاستدعائها من HTML مباشرة.
+
