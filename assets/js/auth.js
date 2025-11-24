@@ -1,42 +1,47 @@
-// ------------------ auth.js (نسخة متوافقة مع Supabase v2 + حماية الصفحات) ------------------
+// ------------------ auth.js (نسخة كاملة ومحدثة) ------------------
 
 // 1️⃣ تهيئة Supabase
 const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_JK3bRv-u0gaoduyKQFBUeg_yhKc9p5y";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ------------------ تتبع الزيارات ------------------
+// ------------------ دوال تتبع الزيارات والإحصائيات ------------------
 async function trackVisit(userId) {
-    const { error } = await supabaseClient
-        .from('visits')
-        .insert({ user_id: userId });
+    const { error } = await supabaseClient.from('visits').insert({ user_id: userId });
     if (error) console.error("Failed to track visit:", error);
 }
 
-// ------------------ تسجيل الدخول ------------------
+async function getVisitStats() {
+    const { data: visits, error } = await supabaseClient.from('visits').select(`user_id, profiles(role)`);
+    if (error) { console.error(error); return null; }
+
+    const stats = {};
+    visits.forEach(v => {
+        const role = v.profiles ? v.profiles.role : 'Unknown';
+        stats[role] = (stats[role] || 0) + 1;
+    });
+    return stats;
+}
+
+// ------------------ تسجيل الدخول والخروج والحماية ------------------
 async function login(email, password) {
     if(!email || !password){ alert("أدخل البريد وكلمة المرور"); return; }
 
     const { data: session, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-    if(error){ alert("البريد أو كلمة المرور خاطئة"); console.error(error); return; }
+    if(error){ alert("البريد أو كلمة المرور خاطئة"); return; }
 
     if(!session || !session.user){ alert("فشل في إنشاء الجلسة"); return; }
 
     const { data: profile, error: profileError } = await supabaseClient
         .from("profiles")
-        .select("id, role, name, username, email")
+        .select("role, name, username")
         .eq("id", session.user.id)
         .single();
 
-    if(profileError){ 
-        alert("خطأ في جلب بيانات المستخدم"); 
-        console.error(profileError); 
-        return; 
-    }
+    if(profileError){ alert("خطأ في جلب بيانات المستخدم"); console.error(profileError); return; }
 
     trackVisit(session.user.id);
 
-    // حفظ بيانات الجلسة محلياً
     localStorage.setItem("sessionUser", JSON.stringify({
         id: session.user.id,
         email: session.user.email,
@@ -44,21 +49,18 @@ async function login(email, password) {
         name: profile.name || profile.username || session.user.email.split('@')[0]
     }));
 
-    // إعادة التوجيه حسب الدور
     if(profile.role === "admin") window.location.href = "dashboard.html";
     else if(profile.role === "user") window.location.href = "user.html";
     else if(profile.role === "guest") window.location.href = "guest.html";
     else window.location.href = "index.html"; 
 }
 
-// ------------------ تسجيل الخروج ------------------
 async function logout() {
     await supabaseClient.auth.signOut();
     localStorage.removeItem("sessionUser");
     window.location.href = "index.html";
 }
 
-// ------------------ حماية الصفحات ------------------
 async function protectPage() {
     const { data: { user } } = await supabaseClient.auth.getUser();
     if(!user){ window.location.href = "index.html"; return null; }
@@ -83,11 +85,32 @@ async function protectPage() {
     return { ...profile, email: profile.email };
 }
 
+// ------------------ فحص الجلسة بدون إعادة توجيه ------------------
+async function checkSessionOnly() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return null;
+
+    const { data: profile, error } = await supabaseClient.from("profiles")
+        .select("role, username, name, email")
+        .eq("id", user.id)
+        .single();
+
+    if(error || !profile) return null;
+
+    trackVisit(user.id);
+
+    return {
+        ...profile,
+        email: profile.email,
+        name: profile.name || profile.username || user.email.split('@')[0]
+    };
+}
+
 // ------------------ إدارة الحسابات ------------------
-async function getUsers(){
+async function getUsers() {
     const { data: profiles, error } = await supabaseClient.from("profiles")
         .select("id, role, username, name, created_at");
-    if(error){ console.error(error); return []; }
+    if(error) return [];
     return profiles;
 }
 
@@ -133,33 +156,36 @@ async function loadUsersList() {
 
 // ------------------ إدارة الخرائط ------------------
 async function getAccessibleMaps(userRole) {
-    const { data: maps, error } = await supabaseClient
-        .from("maps")
-        .select("id, name, url, allowed_roles");
+    const { data: maps, error } = await supabaseClient.from("maps")
+        .select("id, name, url, allowed_roles, type");
     if(error){ console.error(error); return []; }
 
     return maps.filter(map => Array.isArray(map.allowed_roles) && map.allowed_roles.includes(userRole));
 }
 
-async function addMap(name, url, roles){
-    const { error } = await supabaseClient.from("maps")
-        .insert({ name, url, allowed_roles: roles });
+async function addMap(name, url, roles, type="سكنية"){
+    const { error } = await supabaseClient.from("maps").insert({ name, url, allowed_roles: roles, type });
     if(error){ alert("خطأ في إضافة الخريطة: " + error.message); return false; }
     return true;
 }
 
 async function deleteMap(mapId){
-    const { error } = await supabaseClient.from("maps")
-        .delete().eq("id", mapId);
+    const { error } = await supabaseClient.from("maps").delete().eq('id', mapId);
     if(error){ alert("خطأ في حذف الخريطة: " + error.message); return false; }
     return true;
 }
 
-// ------------------ تصدير الدوال ------------------
+// ------------------ مراقبة التغييرات في الجلسة ------------------
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if(!session) localStorage.removeItem("sessionUser");
+});
+
+// ------------------ تصدير جميع الدوال ------------------
 window.login = login;
 window.logout = logout;
 window.protectPage = protectPage;
-window.getVisitStats = trackVisit;
+window.checkSessionOnly = checkSessionOnly;
+window.getVisitStats = getVisitStats;
 window.getUsers = getUsers;
 window.loadUsersList = loadUsersList;
 window.deleteUser = deleteUser;
