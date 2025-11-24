@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard - جهاز معلومات شبكات المرافق</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/auth.js"></script>
 
@@ -28,13 +27,12 @@ header {
   flex-wrap: wrap; /* لتجنب التكدس على شاشات صغيرة */
 }
 
-/* النص في الهيدر */
 header span { font-weight: bold; font-size: 1rem; }
 header a { color: white; text-decoration: none; font-weight: bold; margin-left: 15px; }
 
-/* القسم الأيمن واليسار */
+/* ترتيب العناصر في الهيدر */
+header nav { order: 1; margin-left: 0; }       /* زر تسجيل الخروج على اليسار */
 header > div:first-child { order: 2; margin-left: auto; } /* اسم المستخدم على اليمين */
-header nav { order: 1; } /* زر تسجيل الخروج على اليسار */
 
 /* زر Sidebar */
 #toggleSidebar {
@@ -132,217 +130,165 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
   .main-content { padding: 10px; }
   #toggleSidebar { width: 28px; height: 28px; font-size: 20px; top: 70px; }
 }
-
 </style>
 </head>
 <body>
 
 <header>
-  <div>مرحبا، <span id="userName"></span></div>
-  <nav><a href="#" id="logoutLink">تسجيل الخروج</a></nav>
+  <div>مرحبا، <span id="userName"></span></div>
+  <nav><a href="#" id="logoutLink">تسجيل الخروج</a></nav>
 </header>
-  
-<div id="toggleSidebar" style="
-    position: fixed;
-    top: 80px;       
-    left: 0;
-    width: 30px;
-    height: 30px;
-    background: #1a2980;
-    color: white;
-    font-size: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 0 5px 5px 0;
-    cursor: pointer;
-    z-index: 1100;">
-    &#9776;
-</div>
+  
+<div id="toggleSidebar">&#9776;</div>
 
 <div class="sidebar">
-  <h4>قائمة الأدمن</h4>
-  <a id="managePagesMenu" href="manage-pages.html">إدارة الخرائط</a>
-    <div id="dynamicMapsLinks"></div>
+  <h4>قائمة الأدمن</h4>
+  <a id="managePagesMenu" href="manage-pages.html">إدارة الخرائط</a>
+  <div id="dynamicMapsLinks"></div>
 </div>
 
 <div class="main-content">
-  <h2>لوحة تحكم المسؤول (Admin)</h2>
+  <h2>لوحة تحكم المسؤول (Admin)</h2>
 
-  <div id="adminAccounts" class="admin-section">
-    <h3>إدارة الحسابات</h3>
-    <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني (اسم المستخدم)">
-    <input type="password" id="newPassword" placeholder="كلمة المرور">
-    <select id="newRole">
-      <option value="admin">Admin</option>
-      <option value="user">User</option>
-      <option value="guest">Guest</option>
-    </select>
-    <button id="addUserBtn">إضافة مستخدم</button>
-    <h4>المستخدمون الحاليون</h4>
-    <div id="usersList">جاري تحميل المستخدمين...</div>
-  </div>
+  <div id="adminAccounts" class="admin-section">
+    <h3>إدارة الحسابات</h3>
+    <input type="text" id="newUserName" placeholder="اسم المستخدم">
+    <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني">
+    <input type="password" id="newPassword" placeholder="كلمة المرور">
+    <select id="newRole">
+      <option value="admin">Admin</option>
+      <option value="user">User</option>
+      <option value="guest">Guest</option>
+    </select>
+    <button id="addUserBtn">إضافة مستخدم</button>
+    <h4>المستخدمون الحاليون</h4>
+    <div id="usersList">جاري تحميل المستخدمين...</div>
+  </div>
 
-  <div id="visitsControl" class="admin-section">
-    <h3>زيارات المستخدمين</h3>
-    <canvas id="visitsChart"></canvas>
-  </div>
+  <div id="visitsControl" class="admin-section">
+    <h3>زيارات المستخدمين</h3>
+    <canvas id="visitsChart"></canvas>
+  </div>
 </div>
 
 <footer>
-  إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
-  <span class="line2">Designed By Eng. Ahmed Labib </span>
+  إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
+  <span class="line2">Designed By Eng. Ahmed Labib </span>
 </footer>
 
 <script>
-    // ------------------ 1. تعريف Chart.js ------------------
-    let visitsChart;
+let visitsChart;
 
-    // ------------------ 2. دالة تحديث الشارت من Supabase ------------------
-    async function updateVisitsChart(){
-        const stats = await getVisitStats(); // دالة من auth.js
-        if (!stats) return;
+// تحديث شارت الزيارات
+async function updateVisitsChart(){
+    const stats = await getVisitStats();
+    if (!stats) return;
 
-        const roles = Object.keys(stats);
-        const counts = Object.values(stats);
+    const roles = Object.keys(stats);
+    const counts = Object.values(stats);
 
-        if (!visitsChart) {
-            const ctx = document.getElementById('visitsChart').getContext('2d');
-            visitsChart = new Chart(ctx, {
-                type:'bar',
-                data:{
-                    labels: roles,
-                    datasets:[{
-                        label:'عدد الزيارات',
-                        data: counts,
-                        backgroundColor: roles.map(r => {
-                            if(r.toLowerCase()==='admin') return '#004b8d';
-                            if(r.toLowerCase()==='guest') return '#96c93d';
-                            return '#2c3e50';
-                        })
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        } else {
-            visitsChart.data.labels = roles;
-            visitsChart.data.datasets[0].data = counts;
-            visitsChart.update();
-        }
+    if (!visitsChart) {
+        const ctx = document.getElementById('visitsChart').getContext('2d');
+        visitsChart = new Chart(ctx, {
+            type:'bar',
+            data:{
+                labels: roles,
+                datasets:[{
+                    label:'عدد الزيارات',
+                    data: counts,
+                    backgroundColor: roles.map(r => {
+                        if(r.toLowerCase()==='admin') return '#004b8d';
+                        if(r.toLowerCase()==='guest') return '#96c93d';
+                        return '#2c3e50';
+                    })
+                }]
+            },
+            options: { responsive:true, maintainAspectRatio:false }
+        });
+    } else {
+        visitsChart.data.labels = roles;
+        visitsChart.data.datasets[0].data = counts;
+        visitsChart.update();
+    }
+}
+
+// تحميل خرائط Sidebar
+async function loadDynamicMaps(role) {
+    const mapsContainer = document.getElementById("dynamicMapsLinks");
+    mapsContainer.innerHTML = "";
+    const accessibleMaps = await getAccessibleMaps(role); 
+    accessibleMaps.forEach(map => {
+        const a = document.createElement("a");
+        a.href = map.url;
+        a.textContent = map.name;
+        a.target = "_blank"; 
+        mapsContainer.appendChild(a);
+    });
+}
+
+// تحميل وحماية الصفحة
+window.onload = async function() {
+    const userProfile = await protectPage();
+    if(!userProfile){ window.location.href="index.html"; return; }
+
+    if(userProfile.role !== "admin"){
+        alert("ليس لديك صلاحية الوصول لهذه الصفحة، سيتم توجيهك.");
+        if(userProfile.role==="user") window.location.href="user.html";
+        else if(userProfile.role==="guest") window.location.href="guest.html";
+        else logout();
+        return;
     }
 
-    // ------------------ 3. دالة إضافة خريطة للـ Sidebar ------------------
-    async function loadDynamicMaps(role) {
-        const mapsContainer = document.getElementById("dynamicMapsLinks");
-        mapsContainer.innerHTML = "";
-        
-        // استخدام دالة جلب الخرائط من auth.js لدور الأدمن
-        const accessibleMaps = await getAccessibleMaps(role); 
+    document.getElementById("userName").innerText = userProfile.email;
 
-        accessibleMaps.forEach(map => {
-            const a = document.createElement("a");
-            a.href = map.url;
-            a.textContent = map.name;
-            a.target = "_blank"; 
-            mapsContainer.appendChild(a);
-        });
-    }
+    ["adminAccounts","visitsControl"].forEach(id=>{
+        const el=document.getElementById(id);
+        if(el) el.style.display="block";
+    });
 
-    // ------------------ 4. منطق تحميل وحماية الصفحة ------------------
-    window.onload = async function() {
-        
-        // 🛡️ حماية الصفحة وجلب بيانات المستخدم
-        const userProfile = await protectPage(); // دالة من auth.js
-        
-        if(!userProfile){
-            window.location.href = "index.html";
-            return;
+    await loadUsersList(); 
+    await updateVisitsChart(); 
+    await loadDynamicMaps(userProfile.role);
+
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.querySelector(".sidebar");
+    toggleBtn.onclick = function() {
+        sidebar.classList.toggle("hidden"); 
+        toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
+    };
+
+    // إضافة مستخدم جديد
+    document.getElementById("addUserBtn").onclick = async function() {
+        const name = document.getElementById("newUserName").value.trim();
+        const email = document.getElementById("newUserEmail").value.trim();
+        const password = document.getElementById("newPassword").value;
+        const role = document.getElementById("newRole").value;
+
+        if(!name || !email || !password){ alert("املأ جميع الحقول"); return; }
+
+        const success = await addUser(name, email, password, role); 
+
+        if(success){
+            alert("تم إضافة المستخدم بنجاح!");
+            document.getElementById("newUserName").value="";
+            document.getElementById("newUserEmail").value="";
+            document.getElementById("newPassword").value="";
+            await loadUsersList(); 
+            await updateVisitsChart(); 
         }
+    };
 
-        // ⚠️ التحقق من الدور (يجب أن يكون Admin)
-        if(userProfile.role !== "admin"){
-            alert("ليس لديك صلاحية الوصول لهذه الصفحة، سيتم توجيهك.");
-            if(userProfile.role === "user") window.location.href = "user.html";
-            else if(userProfile.role === "guest") window.location.href = "guest.html";
-            else logout();
-            return;
-        }
+    // تسجيل الخروج
+    document.getElementById("logoutLink").onclick = (e)=>{ e.preventDefault(); logout(); };
 
-        // عرض اسم المستخدم
-        document.getElementById("userName").innerText = userProfile.email;
-
-        // عرض أقسام Admin
-        ["adminAccounts","visitsControl"].forEach(id=>{
-            const el = document.getElementById(id);
-            if(el) el.style.display = "block";
-        });
-        
-        // تحميل قائمة المستخدمين (دالة من auth.js)
+    // دالة حذف المستخدم
+    window.deleteUser = async function(userId){
+        if(!confirm("هل تريد حذف هذا المستخدم نهائياً؟")) return;
+        await deleteUser(userId);
         await loadUsersList(); 
-        
-        // تحميل شارت الزيارات
         await updateVisitsChart(); 
-        
-        // تحميل خرائط Sidebar
-        await loadDynamicMaps(userProfile.role);
-
-        // Sidebar toggle
-        const toggleBtn = document.getElementById("toggleSidebar");
-        const sidebar = document.querySelector(".sidebar");
-        toggleBtn.onclick = function() {
-            sidebar.classList.toggle("hidden"); 
-            toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
-        };
-
-        // ===== إضافة مستخدم جديد =====
-        document.getElementById("addUserBtn").onclick = async function() {
-    const name = document.getElementById("newUserName").value.trim(); // اسم المستخدم
-    const email = document.getElementById("newUserEmail").value.trim();
-    const password = document.getElementById("newPassword").value;
-    const role = document.getElementById("newRole").value;
-
-    if(!name || !email || !password){ 
-        alert("املأ جميع الحقول"); 
-        return; 
-    }
-    
-    // 🔑 استخدام دالة addUser من auth.js مع الاسم الجديد
-    const success = await addUser(name, email, password, role); 
-
-    if(success){
-        alert("تم إضافة المستخدم بنجاح!");
-        document.getElementById("newUserName").value = "";
-        document.getElementById("newUserEmail").value = "";
-        document.getElementById("newPassword").value = "";
-        await loadUsersList(); // إعادة تحميل القائمة
-        await updateVisitsChart(); // تحديث الشارت
     }
 };
-
-
-        // ===== تسجيل الخروج =====
-        document.getElementById("logoutLink").onclick = (e) => { 
-            e.preventDefault();
-            logout(); 
-        };
-        
-        // ===== دوال الحذف والتعديل على المستخدمين (تستخدم دالة deleteUser من auth.js) =====
-        // يتم تعريف الدوال بشكل عام (window.deleteUser) لاستدعائها من HTML في دالة loadUsersList بـ auth.js 
-        // ⚠️ ملاحظة: تم تعديل دالة deleteUser في auth.js لتعمل على الـ ID بدلاً من الـ index.
-        window.deleteUser = async function(userId){
-            if(!confirm("هل تريد حذف هذا المستخدم نهائياً؟")) return;
-            await deleteUser(userId);
-            await loadUsersList(); // إعادة تحميل القائمة
-            await updateVisitsChart(); // تحديث الشارت
-        }
-        
-        // ⚠️ ملاحظة: تغيير كلمة المرور عبر الـ Front-end مباشرة يتطلب صلاحيات Admin API، 
-        // ولتبسيط المشروع، سنزيل زر تغيير كلمة المرور ونركز على الإضافة والحذف.
-    };
 </script>
 </body>
 </html>
-
