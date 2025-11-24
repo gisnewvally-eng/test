@@ -1,12 +1,11 @@
-// ------------------ auth.js (نسخة معدلة لدعم الجلسة وعدم ظهور 400) ------------------
+// ------------------ auth.js (نسخة متوافقة مع Supabase v2 + حماية الصفحات) ------------------
 
 // 1️⃣ تهيئة Supabase
 const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_JK3bRv-u0gaoduyKQFBUeg_yhKc9p5y";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ------------------ دوال تتبع الزيارات والإحصائيات ------------------
-
+// ------------------ تتبع الزيارات ------------------
 async function trackVisit(userId) {
     const { error } = await supabaseClient
         .from('visits')
@@ -14,42 +13,30 @@ async function trackVisit(userId) {
     if (error) console.error("Failed to track visit:", error);
 }
 
-async function getVisitStats() {
-    const { data: visits, error } = await supabaseClient
-        .from('visits')
-        .select(`user_id, profiles (role)`);
-    if (error) { console.error(error); return null; }
-
-    const stats = {};
-    visits.forEach(v => {
-        const role = v.profiles ? v.profiles.role : 'Unknown';
-        stats[role] = (stats[role] || 0) + 1;
-    });
-    return stats;
-}
-
-// ------------------ تسجيل الدخول والخروج والحماية ------------------
-
+// ------------------ تسجيل الدخول ------------------
 async function login(email, password) {
     if(!email || !password){ alert("أدخل البريد وكلمة المرور"); return; }
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    const { data: session, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if(error){ alert("البريد أو كلمة المرور خاطئة"); console.error(error); return; }
 
-    const session = data.session;
     if(!session || !session.user){ alert("فشل في إنشاء الجلسة"); return; }
 
-    // استخدام الجلسة للوصول إلى profile
     const { data: profile, error: profileError } = await supabaseClient
         .from("profiles")
-        .select("role, name, username")
+        .select("id, role, name, username, email")
         .eq("id", session.user.id)
         .single();
 
-    if(profileError){ alert("خطأ في جلب بيانات المستخدم"); console.error(profileError); return; }
+    if(profileError){ 
+        alert("خطأ في جلب بيانات المستخدم"); 
+        console.error(profileError); 
+        return; 
+    }
 
     trackVisit(session.user.id);
 
+    // حفظ بيانات الجلسة محلياً
     localStorage.setItem("sessionUser", JSON.stringify({
         id: session.user.id,
         email: session.user.email,
@@ -57,30 +44,32 @@ async function login(email, password) {
         name: profile.name || profile.username || session.user.email.split('@')[0]
     }));
 
+    // إعادة التوجيه حسب الدور
     if(profile.role === "admin") window.location.href = "dashboard.html";
     else if(profile.role === "user") window.location.href = "user.html";
     else if(profile.role === "guest") window.location.href = "guest.html";
     else window.location.href = "index.html"; 
 }
 
+// ------------------ تسجيل الخروج ------------------
 async function logout() {
     await supabaseClient.auth.signOut();
     localStorage.removeItem("sessionUser");
     window.location.href = "index.html";
 }
 
+// ------------------ حماية الصفحات ------------------
 async function protectPage() {
-    const { data: { user }, error } = await supabaseClient.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     if(!user){ window.location.href = "index.html"; return null; }
 
-    // استخدام الجلسة للوصول إلى profiles
-    const { data: profile, error: profileError } = await supabaseClient
+    const { data: profile, error } = await supabaseClient
         .from("profiles")
         .select("id, role, username, name, email")
         .eq("id", user.id)
         .single();
 
-    if(profileError || !profile){ await logout(); return null; }
+    if(error || !profile){ await logout(); return null; }
 
     trackVisit(user.id);
 
@@ -95,11 +84,10 @@ async function protectPage() {
 }
 
 // ------------------ إدارة الحسابات ------------------
-
 async function getUsers(){
     const { data: profiles, error } = await supabaseClient.from("profiles")
         .select("id, role, username, name, created_at");
-    if(error) { console.error(error); return []; }
+    if(error){ console.error(error); return []; }
     return profiles;
 }
 
@@ -124,23 +112,45 @@ async function deleteUser(userId){
     alert("لحذف المستخدم نهائياً من Supabase Auth يجب تنفيذها من الخادم.");
 }
 
-// ------------------ إدارة الخرائط ------------------
+async function loadUsersList() {
+    const usersListDiv = document.getElementById("usersList");
+    if(!usersListDiv) return;
 
+    usersListDiv.innerHTML = "جاري تحميل بيانات المستخدمين...";
+    const users = await getUsers();
+    usersListDiv.innerHTML = "";
+
+    users.forEach(u => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+            ${u.name || u.username} (${u.role}) 
+            <span style="font-size:0.8em; margin-right:10px;">${new Date(u.created_at).toLocaleDateString()}</span>
+            <span><button onclick="deleteUser('${u.id}')">حذف</button></span>
+        `;
+        usersListDiv.appendChild(div);
+    });
+}
+
+// ------------------ إدارة الخرائط ------------------
 async function getAccessibleMaps(userRole) {
-    const { data: maps, error } = await supabaseClient.from("maps").select("id, name, url, allowed_roles");
+    const { data: maps, error } = await supabaseClient
+        .from("maps")
+        .select("id, name, url, allowed_roles");
     if(error){ console.error(error); return []; }
 
     return maps.filter(map => Array.isArray(map.allowed_roles) && map.allowed_roles.includes(userRole));
 }
 
 async function addMap(name, url, roles){
-    const { error } = await supabaseClient.from("maps").insert({ name, url, allowed_roles: roles });
+    const { error } = await supabaseClient.from("maps")
+        .insert({ name, url, allowed_roles: roles });
     if(error){ alert("خطأ في إضافة الخريطة: " + error.message); return false; }
     return true;
 }
 
 async function deleteMap(mapId){
-    const { error } = await supabaseClient.from("maps").delete().eq("id", mapId);
+    const { error } = await supabaseClient.from("maps")
+        .delete().eq("id", mapId);
     if(error){ alert("خطأ في حذف الخريطة: " + error.message); return false; }
     return true;
 }
@@ -149,10 +159,11 @@ async function deleteMap(mapId){
 window.login = login;
 window.logout = logout;
 window.protectPage = protectPage;
-window.getVisitStats = getVisitStats;
+window.getVisitStats = trackVisit;
 window.getUsers = getUsers;
-window.addUser = addUser;
+window.loadUsersList = loadUsersList;
 window.deleteUser = deleteUser;
+window.addUser = addUser;
 window.getAccessibleMaps = getAccessibleMaps;
 window.addMap = addMap;
 window.deleteMap = deleteMap;
