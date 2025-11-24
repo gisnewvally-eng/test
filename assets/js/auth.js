@@ -1,163 +1,312 @@
-// ------------------ auth.js (Supabase Version مصحح) ------------------
+// ------------------ auth.js (النسخة النهائية والمكتملة) ------------------
 
 // 1️⃣ تهيئة Supabase
+// ⚠️ تأكد من أن الروابط التالية هي الروابط الصحيحة لمشروعك 
 const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_JK3bRv-u0gaoduyKQFBUeg_yhKc9p5y";
-
-// تغيير الاسم لتجنب التعارض
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ------------------ تسجيل الدخول ------------------
-async function login() {
-  // ⚠️ يتم جلب القيم من DOM لأن هذا الملف سيتم استدعاؤه في login.html
-  const email = document.getElementById("user").value.trim();
-  const password = document.getElementById("pass").value;
+// ------------------ دوال تتبع الزيارات والإحصائيات ------------------
 
-  if(!email || !password){
-    alert("أدخل البريد وكلمة المرور");
-    return;
-  }
+/**
+ * 🎯 دالة لتسجيل زيارة ناجحة في جدول visits
+ * @param {string} userId - مُعرف المستخدم
+ */
+async function trackVisit(userId) {
+    const { error } = await supabaseClient
+        .from('visits')
+        .insert({ 
+            user_id: userId,
+            // created_at يتم تسجيلها تلقائيًا
+        });
 
-  const { data: session, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-  if(error){
-    alert("البريد أو كلمة المرور خاطئة");
-    console.log(error);
-    return;
-  }
-  // التحقق من وجود الجلسة والمستخدم
-  if (!session || !session.user) {
-     alert("فشل في إنشاء الجلسة");
-     return;
-  }
-
-  // جلب بيانات المستخدم من جدول profiles
-  const { data: profile, error: profileError } = await supabaseClient
-    .from("profiles")
-    .select("*")
-    .eq("id", session.user.id) // استخدام الـ ID لضمان الدقة
-    .single();
-
-  if(profileError){
-    alert("حدث خطأ أثناء جلب بيانات المستخدم");
-    console.error("Profile Error:", profileError);
-    return;
-  }
-
-  // حفظ بيانات المستخدم محليًا مؤقتًا (تم تغيير الاسم لتوحيد المفتاح)
-  localStorage.setItem("sessionUser", JSON.stringify({ id: session.user.id, email, role: profile.role }));
-
-  // توجيه المستخدم حسب الدور
-  if(profile.role === "admin") window.location.href = "dashboard.html";
-  else if(profile.role === "user") window.location.href = "user.html";
-  else if(profile.role === "guest") window.location.href = "guest.html";
-  else window.location.href = "index.html"; // توجيه احتياطي
+    if (error) {
+        // غالباً خطأ بسبب RLS في جدول visits
+        console.error("Failed to track visit:", error);
+    }
 }
 
-// ------------------ تسجيل الخروج ------------------
-async function logout() {
-  await supabaseClient.auth.signOut();
-  // استخدام نفس مفتاح localStorage
-  localStorage.removeItem("sessionUser"); 
-  window.location.href = "index.html";
+/**
+ * 📈 دالة لجلب إحصائيات الزيارات المجمعة لكل دور
+ * @returns {Promise<Object | null>} - كائن يحتوي على عدد الزيارات لكل دور
+ */
+async function getVisitStats() {
+    // جلب كل الزيارات، مع جلب الدور المقابل من جدول profiles
+    // يتطلب تفعيل RLS على جدول visits للسماح بـ SELECT للمستخدمين
+    const { data: visits, error } = await supabaseClient
+        .from('visits')
+        .select(`
+            user_id,
+            profiles (role) 
+        `);
+
+    if (error) {
+        console.error("Error fetching visit stats:", error);
+        return null;
+    }
+
+    // تجميع البيانات حسب الدور (Admin, User, Guest)
+    const stats = {};
+    visits.forEach(v => {
+        // تأكد من وجود ملف تعريف قبل جلب الدور
+        const role = v.profiles ? v.profiles.role : 'Unknown';
+        stats[role] = (stats[role] || 0) + 1;
+    });
+
+    return stats;
 }
 
-// ------------------ حماية الصفحات ------------------
-async function protectPage() {
-  // التحقق أولاً من حالة المستخدم في Supabase Auth
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  
-  if(!user){
-    window.location.href = "index.html";
-    return null;
-  }
 
-  // جلب بيانات الدور من جدول profiles
-  const { data: profile, error } = await supabaseClient
-    .from("profiles")
-    .select("id, role") // جلب فقط ما تحتاجه
-    .eq("id", user.id)
-    .single();
+// ------------------ تسجيل الدخول والخروج والحماية ------------------
 
-  if(error || !profile){
-    // في حالة عدم العثور على بروفايل في DB، قم بتسجيل الخروج لإعادة التوجيه
-    await logout(); 
-    return null;
-  }
+/**
+ * 🔑 تسجيل دخول المستخدم
+ * @param {string} email
+ * @param {string} password
+ */
+async function login(email, password) {
+    if(!email || !password){
+        alert("أدخل البريد وكلمة المرور");
+        return;
+    }
+
+    const { data: session, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    if(error){
+        alert("البريد أو كلمة المرور خاطئة");
+        return;
+    }
   
-  // حفظ بيانات الجلسة (قد تكون قد ضاعت أو لم يتم تخزينها)
-  localStorage.setItem("sessionUser", JSON.stringify({ id: user.id, email: user.email, role: profile.role }));
+    if (!session || !session.user) {
+        alert("فشل في إنشاء الجلسة");
+        return;
+    }
 
+    // جلب بيانات المستخدم من جدول profiles
+    const { data: profile, error: profileError } = await supabaseClient
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .single();
 
-  return profile; // يحتوي الآن على role وid
+    if(profileError){
+        alert("حدث خطأ أثناء جلب بيانات المستخدم");
+        console.error("Profile Error:", profileError);
+        return;
+    }
+    
+    // تسجيل الزيارة الناجحة مباشرة بعد تسجيل الدخول
+    trackVisit(session.user.id);
+
+    // حفظ بيانات المستخدم محليًا مؤقتًا
+    localStorage.setItem("sessionUser", JSON.stringify({ id: session.user.id, email: session.user.email, role: profile.role }));
+
+    // التوجيه
+    if(profile.role === "admin") window.location.href = "dashboard.html";
+    else if(profile.role === "user") window.location.href = "user.html";
+    else if(profile.role === "guest") window.location.href = "guest.html";
+    else window.location.href = "index.html"; 
+}
+
+/**
+ * 🚪 تسجيل خروج المستخدم
+ */
+async function logout() {
+    await supabaseClient.auth.signOut();
+    localStorage.removeItem("sessionUser"); 
+    window.location.href = "index.html";
+}
+
+/**
+ * 🛡️ حماية الصفحات والتحقق من الجلسة
+ * @returns {Promise<Object | null>} - بروفايل المستخدم أو null إذا فشل
+ */
+async function protectPage() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+  
+    if(!user){
+        window.location.href = "index.html";
+        return null;
+    }
+
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("id, role, username, email") // نستخدم email هنا لغرض العرض في الداشبورد
+        .eq("id", user.id)
+        .single();
+
+    if(error || !profile){
+        await logout(); 
+        return null;
+    }
+    
+    // تسجيل الزيارة الناجحة عند حماية أي صفحة
+    trackVisit(user.id);
+    
+    localStorage.setItem("sessionUser", JSON.stringify({ id: user.id, email: user.email, role: profile.role }));
+
+    return { ...profile, email: user.email }; // دمج بيانات المستخدم والبروفايل
 }
 
 // ------------------ إدارة الحسابات (Admin فقط) ------------------
 
-// جلب كل المستخدمين
+/**
+ * 👥 جلب كل المستخدمين من جدول profiles
+ * @returns {Promise<Array>} - قائمة المستخدمين
+ */
 async function getUsers(){
-  const { data: profiles, error } = await supabaseClient.from("profiles").select("*");
-  if(error) return [];
-  return profiles;
+    const { data: profiles, error } = await supabaseClient.from("profiles").select("id, role, username, created_at");
+    if(error) return [];
+    return profiles;
 }
 
-// إضافة مستخدم جديد
+/**
+ * ➕ إضافة مستخدم جديد (إنشاء في Auth وحفظ الدور في profiles)
+ * @param {string} email
+ * @param {string} password
+ * @param {string} role
+ * @returns {Promise<boolean>}
+ */
 async function addUser(email, password, role){
-  const { data: user, error } = await supabaseClient.auth.signUp({ email, password });
+    // 1. إنشاء المستخدم في Supabase Auth
+    const { data: user, error } = await supabaseClient.auth.signUp({ email, password });
 
-  if(error){
-    alert("خطأ في إنشاء المستخدم: " + error.message);
-    return false;
-  }
-  
-  // ⚠️ يفضل التأكد من تفعيل التسجيل التلقائي (Auto-Confirm) في إعدادات Supabase
-  if (!user || !user.user) {
-      alert("فشل في إنشاء المستخدم في Auth");
-      return false;
-  }
+    if(error){
+        alert("خطأ في إنشاء المستخدم: " + error.message);
+        return false;
+    }
+    
+    if (!user || !user.user) {
+        alert("فشل في إنشاء المستخدم في Auth");
+        return false;
+    }
 
-  const { error: profileError } = await supabaseClient
-    .from("profiles")
-    .insert([{ id: user.user.id, role, username: email.split('@')[0] }]); // إضافة username بسيط
+    // 2. حفظ الدور في جدول profiles
+    const { error: profileError } = await supabaseClient
+        .from("profiles")
+        .insert([{ id: user.user.id, role, username: email.split('@')[0] }]);
 
-  if(profileError){
-    alert("خطأ في حفظ بيانات الدور: " + profileError.message);
-    return false;
-  }
+    if(profileError){
+        alert("خطأ في حفظ بيانات الدور: " + profileError.message);
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
-// حذف مستخدم
+/**
+ * ❌ حذف مستخدم (من profiles وسجلات visits)
+ * @param {string} userId - مُعرف المستخدم
+ */
 async function deleteUser(userId){
-  await supabaseClient.from("profiles").delete().eq("id", userId);
-  alert("لحذف المستخدم نهائياً من Supabase Auth يجب استخدام Admin API من الخادم");
+    // الحذف من profiles
+    await supabaseClient.from("profiles").delete().eq("id", userId);
+    
+    // حذف أي سجلات مرتبطة في جدول visits
+    await supabaseClient.from("visits").delete().eq("user_id", userId);
+    
+    alert("لحذف المستخدم نهائياً من Supabase Auth (Admin API) يجب تنفيذ هذه العملية من الخادم.");
 }
 
-// تعديل كلمة مرور
-async function changePassword(userId, newPassword){
-  alert("لتغيير كلمة المرور يجب استخدام Admin API أو رابط إعادة تعيين كلمة المرور للبريد");
-}
-
-// ------------------ مثال تحميل المستخدمين في لوحة Admin ------------------
+/**
+ * 📜 تحميل وعرض قائمة المستخدمين في لوحة الأدمن
+ */
 async function loadUsersList() {
-  const usersListDiv = document.getElementById("usersList");
-  if(!usersListDiv) return;
+    const usersListDiv = document.getElementById("usersList");
+    if(!usersListDiv) return;
 
-  const users = await getUsers();
-  usersListDiv.innerHTML = "";
+    usersListDiv.innerHTML = "جاري تحميل بيانات المستخدمين...";
+    
+    const users = await getUsers();
+    usersListDiv.innerHTML = "";
 
-  users.forEach(u => {
-    const div = document.createElement("div");
-    div.innerHTML = `${u.id} (${u.role}) <span>`;
-    div.innerHTML += `<button onclick="deleteUser('${u.id}')">حذف</button>`;
-    div.innerHTML += `</span>`;
-    usersListDiv.appendChild(div);
-  });
+    users.forEach(u => {
+        const div = document.createElement("div");
+        div.innerHTML = `
+            ${u.username || u.email} (${u.role}) 
+            <span style="font-size: 0.8em; margin-right: 10px;">${new Date(u.created_at).toLocaleDateString()}</span>
+            <span>
+                <button onclick="deleteUser('${u.id}')">حذف</button>
+            </span>
+        `;
+        usersListDiv.appendChild(div);
+    });
+}
+
+
+// ------------------ إدارة الخرائط (Admin) ------------------
+
+/**
+ * 🗺️ جلب الخرائط المسموح بها لدور معين
+ * @param {string} userRole - دور المستخدم الحالي (admin, user, guest)
+ * @returns {Promise<Array>} - مصفوفة من كائنات الخرائط
+ */
+async function getAccessibleMaps(userRole) {
+    const { data: maps, error } = await supabaseClient
+        .from("maps") 
+        .select("id, name, url, allowed_roles");
+
+    if (error) {
+        console.error("Error fetching maps:", error);
+        return [];
+    }
+
+    // تصفية الخرائط بناءً على الدور المسموح به
+    const accessibleMaps = maps.filter(map => {
+        // التحقق من أن الدور موجود في مصفوفة allowed_roles
+        if (Array.isArray(map.allowed_roles)) {
+            return map.allowed_roles.includes(userRole);
+        }
+        return false;
+    });
+
+    return accessibleMaps;
+}
+
+/**
+ * ➕ إضافة خريطة جديدة (يجب استخدامها في صفحة manage-pages.html)
+ * @param {string} name - اسم الخريطة
+ * @param {string} url - رابط الخريطة
+ * @param {Array<string>} roles - مصفوفة الأدوار المسموح بها (مثال: ['admin', 'user'])
+ * @returns {Promise<boolean>} - true إذا نجحت العملية
+ */
+async function addMap(name, url, roles) {
+    const { error } = await supabaseClient
+        .from("maps")
+        .insert({ 
+            name: name,
+            url: url,
+            allowed_roles: roles 
+        });
+
+    if (error) {
+        alert("خطأ في إضافة الخريطة: " + error.message);
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * ❌ حذف خريطة
+ * @param {string} mapId - مُعرف الخريطة المراد حذفها
+ * @returns {Promise<boolean>} - true إذا نجحت العملية
+ */
+async function deleteMap(mapId) {
+    const { error } = await supabaseClient
+        .from("maps")
+        .delete()
+        .eq("id", mapId);
+
+    if (error) {
+        alert("خطأ في حذف الخريطة: " + error.message);
+        return false;
+    }
+
+    return true;
 }
 
 // ------------------ مراقبة الجلسة ------------------
 supabaseClient.auth.onAuthStateChange((event, session) => {
-  // يتم حذف الجلسة محلياً عند تسجيل الخروج أو انتهاء الجلسة
-  if(!session) localStorage.removeItem("sessionUser"); 
+    if(!session) localStorage.removeItem("sessionUser"); 
 });
