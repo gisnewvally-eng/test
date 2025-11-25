@@ -1,9 +1,19 @@
+// ------------------ server.js ------------------
 const express = require("express");
 const cors = require("cors");
 const { createClient } = require("@supabase/supabase-js");
 
 const app = express();
-app.use(cors());
+
+// ---- إعدادات CORS ----
+const corsOptions = {
+  origin: '*', // ✅ يمكنك تغييره إلى الدومين الفعلي إذا أحببت
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
 
 // ---- Supabase Service Role Key ----
@@ -47,7 +57,7 @@ app.post("/delete-user", async (req, res) => {
         const { userId } = req.body;
         if(!userId) return res.status(400).json({ error: "userId مطلوب" });
 
-        // حذف من جدول profiles
+        // حذف من جدول profiles وvisits
         await supabase.from("profiles").delete().eq("id", userId);
         await supabase.from("visits").delete().eq("user_id", userId);
 
