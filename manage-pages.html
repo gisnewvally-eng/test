@@ -18,20 +18,15 @@ header button { background:#fff; color:#000; border:none; padding:8px 14px; bord
 main { padding:20px; }
 #mapsGrid { display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; }
 
-.map-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:10px; display:flex; flex-direction:column; align-items:center; text-align:center; position:relative; transition: transform 0.2s; }
+.map-card { background:#fff; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); padding:10px; display:flex; flex-direction:column; align-items:center; text-align:center; transition: transform 0.2s; }
 .map-card:hover { transform: scale(1.03); }
 .map-card img { width:70px; height:70px; object-fit:contain; margin-bottom:10px; transition: transform 0.2s; }
 .map-card input[type="text"], .map-card select { width:90%; padding:6px; margin-bottom:6px; border-radius:6px; border:1px solid #ccc; text-align:center; font-size:14px; }
 .roles { display:flex; justify-content:space-around; width:100%; margin-bottom:8px; flex-wrap:wrap; }
 .roles label { font-size:12px; }
-
 .map-card button { background: linear-gradient(90deg,#00b09b,#96c93d); color:#fff; border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:700; margin-top:4px; font-size:13px; }
 
-.hover-info { position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.7); color:#fff; display:flex; flex-direction:column; justify-content:center; align-items:center; border-radius:10px; opacity:0; transition:opacity 0.2s; text-align:center; font-size:13px; }
-.map-card:hover .hover-info { opacity:1; }
-
 #addMapBtn { background:#fff; color:#000; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; font-weight:700; }
-
 #addMapModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000; }
 #addMapModal .modal-content { background:#fff; padding:20px; border-radius:10px; width:90%; max-width:400px; display:flex; flex-direction:column; gap:10px; }
 #addMapModal select, #addMapModal input { width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; font-size:14px; }
@@ -91,13 +86,15 @@ function createMapCard(map){
   img.src = map.image_url || mapImages[map.type] || mapImages["سكنية"];
   card.appendChild(img);
 
-  const hoverInfo = document.createElement("div");
-  hoverInfo.className = "hover-info";
-  hoverInfo.innerHTML = `
-    <div><b>${map.name}</b></div>
-    <div>الرابط: ${map.url || "غير موجود"}</div>
-  `;
-  card.appendChild(hoverInfo);
+  // الاسم
+  const nameInput = document.createElement("input");
+  nameInput.type="text"; nameInput.value=map.name||""; nameInput.placeholder="اسم الخريطة";
+  card.appendChild(nameInput);
+
+  // الرابط
+  const urlInput = document.createElement("input");
+  urlInput.type="text"; urlInput.value=map.url||""; urlInput.placeholder="رابط الخريطة";
+  card.appendChild(urlInput);
 
   // النوع
   const typeSelect = document.createElement("select");
@@ -107,24 +104,7 @@ function createMapCard(map){
     if(map.type===t) opt.selected=true;
     typeSelect.appendChild(opt);
   });
-  typeSelect.onchange = async e=>{
-    const type = e.target.value;
-    img.src = mapImages[type];
-    await supabaseClient.from('maps').update({type, image_url: mapImages[type]}).eq('id', map.id);
-  };
   card.appendChild(typeSelect);
-
-  // الاسم
-  const nameInput = document.createElement("input");
-  nameInput.type="text"; nameInput.value=map.name||""; nameInput.placeholder="اسم الخريطة";
-  nameInput.onchange = e=>supabaseClient.from('maps').update({name:e.target.value}).eq('id', map.id);
-  card.appendChild(nameInput);
-
-  // الرابط
-  const urlInput = document.createElement("input");
-  urlInput.type="text"; urlInput.value=map.url||""; urlInput.placeholder="رابط الخريطة";
-  urlInput.onchange = e=>supabaseClient.from('maps').update({url:e.target.value}).eq('id', map.id);
-  card.appendChild(urlInput);
 
   // الأدوار
   const roleDiv = document.createElement("div"); roleDiv.className="roles";
@@ -132,22 +112,39 @@ function createMapCard(map){
     const label = document.createElement("label");
     const checkbox = document.createElement("input"); checkbox.type="checkbox";
     checkbox.checked = map.allowed_roles?.includes(role)||false;
-    checkbox.onchange = async e=>{
-      let roles = Array.isArray(map.allowed_roles)?[...map.allowed_roles]:[];
-      if(e.target.checked){ if(!roles.includes(role)) roles.push(role); }
-      else roles = roles.filter(r=>r!==role);
-      const { error } = await supabaseClient.from('maps').update({allowed_roles:roles}).eq('id',map.id);
-      if(!error) map.allowed_roles = roles;
-    };
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode(" "+role));
     roleDiv.appendChild(label);
   });
   card.appendChild(roleDiv);
 
+  // زر حفظ التغييرات
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent="حفظ التغييرات";
+  saveBtn.onclick = async ()=>{
+    const newName = nameInput.value.trim();
+    const newURL = urlInput.value.trim();
+    const newType = typeSelect.value;
+    const newRoles = Array.from(roleDiv.querySelectorAll('input[type="checkbox"]'))
+      .filter(cb=>cb.checked).map(cb=>cb.parentElement.textContent.trim());
+    
+    await supabaseClient.from('maps').update({
+      name:newName,
+      url:newURL,
+      type:newType,
+      image_url: mapImages[newType],
+      allowed_roles: newRoles
+    }).eq('id', map.id);
+    
+    img.src = mapImages[newType];
+    alert("تم حفظ التغييرات بنجاح");
+  };
+  card.appendChild(saveBtn);
+
   // حذف
   const delBtn = document.createElement("button");
   delBtn.textContent="حذف الخريطة";
+  delBtn.style.background="#e74c3c";
   delBtn.onclick = async ()=>{
     if(confirm("هل تريد حذف هذه الخريطة نهائياً؟")){
       await supabaseClient.from('maps').delete().eq('id',map.id);
