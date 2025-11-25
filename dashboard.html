@@ -214,12 +214,14 @@ async function loadUsersList(){
 async function promptUpdatePassword(id){
   const pwd = prompt("أدخل كلمة السر الجديدة:");
   if(!pwd) return;
-  alert("لتغيير كلمة السر استخدم واجهة Supabase Admin أو أضف دالة updateUserPassword في auth.js");
+  const success = await updateUserPassword(id, pwd);
+  if(success) alert("تم تغيير كلمة السر بنجاح");
 }
 
 async function confirmDeleteUser(id){
   if(!confirm("هل تريد حذف المستخدم؟")) return;
-  await deleteUser(id);
+  const success = await deleteUser(id);
+  if(success) alert("تم حذف المستخدم بنجاح");
   loadUsersList();
 }
 
