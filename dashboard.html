@@ -7,81 +7,64 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="assets/js/auth.js"></script>
 <style>
-/* =======================
-   الهيدر
-======================= */
-body { margin:0; font-family:sans-serif; }
+/* =============== الهيدر =============== */
+body { margin:0; font-family:"Cairo",sans-serif; background:#f5f5f5; }
 header {
   background: linear-gradient(90deg,#00F260,#0575E6);
-  color:white;
-  padding:15px 25px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  position:fixed;
-  top:0; left:0; right:0;
-  z-index:1001;
-  flex-wrap:wrap;
+  color:white; padding:15px 25px;
+  display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+  position:fixed; top:0; left:0; right:0; z-index:1001;
 }
 header span { font-weight:bold; font-size:1rem; }
 header nav a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; }
 
-/* Sidebar */
+/* =============== Sidebar =============== */
 #toggleSidebar {
   position:fixed; top:80px; left:0; width:30px; height:30px;
   background:#1a2980; color:white; font-size:24px;
   display:flex; justify-content:center; align-items:center;
-  border-radius:0 5px 5px 0; cursor:pointer; z-index:1100;
-  transition:0.3s;
+  border-radius:0 5px 5px 0; cursor:pointer; z-index:1100; transition:0.3s;
 }
 #toggleSidebar:hover { background:#26d0ce; }
+
 .sidebar {
   width:220px; background:#2c3e50; color:white;
-  position:fixed; top:70px; left:0;
-  height:calc(100% - 70px); padding:20px;
-  overflow-y:auto; transition:transform 0.3s ease;
+  position:fixed; top:70px; left:0; height:calc(100% - 70px);
+  padding:20px; overflow-y:auto; transition:transform 0.3s ease;
 }
 .sidebar.hidden { transform:translateX(-250px); }
-.sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; padding:5px; transition:0.3s; }
+.sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; padding:5px; transition:0.3s; border-radius:4px; }
 .sidebar a:hover { background:#34495e; padding-left:10px; }
 
-/* المحتوى الرئيسي */
+/* =============== Main Content =============== */
 .main-content { margin-top:70px; margin-left:240px; padding:30px; padding-bottom:60px; transition:0.3s; }
+.admin-section { margin-bottom:40px; background:#fff; padding:15px; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
 
-/* Footer */
+/* =============== Footer =============== */
 footer { position:fixed; bottom:0; left:0; right:0;
   background:linear-gradient(90deg,#00F260,#0575E6);
-  color:#fff; display:flex; flex-direction:column;
-  align-items:center; justify-content:center; text-align:center;
-  font-weight:700; padding:6px 0; z-index:1000;
+  color:#fff; text-align:center; font-weight:700; padding:6px 0; z-index:1000;
 }
 footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 
-/* =======================
-   جداول المستخدمين أنيقة
-======================= */
-.admin-section { margin-bottom:40px; }
-table { width:100%; border-collapse:collapse; }
-table th, table td { padding:10px; text-align:right; border-bottom:1px solid #ccc; }
+/* =============== Users Table =============== */
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+table th, table td { padding:10px; text-align:right; border-bottom:1px solid #ccc; font-size:14px; }
 table th { background:#00a86b; color:white; }
 table tr:hover { background:#f2f2f2; }
-button { padding:5px 10px; margin:2px; border:none; border-radius:4px; cursor:pointer; transition:0.3s; }
+button { padding:5px 10px; margin:2px; border:none; border-radius:4px; cursor:pointer; transition:0.3s; font-size:13px; }
 button.save { background:#004b8d; color:white; }
 button.delete { background:#e74c3c; color:white; }
 button.save:hover { background:#002f5a; }
 button.delete:hover { background:#c0392b; }
 
-/* ألوان الحقول */
+/* =============== Inputs =============== */
 input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4px; }
 
-/* =======================
-   شارت زيارات أصغر
-======================= */
+/* =============== Chart =============== */
 #visitsChart { height:200px !important; max-width:100%; }
 
-/* =======================
-   متجاوب
-======================= */
+/* =============== Responsive =============== */
 @media (max-width:768px) {
   .main-content { margin-left:0; padding:15px; }
   .sidebar { width:200px; top:70px; height:calc(100%-70px); }
@@ -110,9 +93,10 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
 <div class="main-content">
   <h2>لوحة تحكم المسؤول</h2>
 
+  <!-- إدارة المستخدمين -->
   <div id="adminAccounts" class="admin-section">
     <h3>إدارة الحسابات</h3>
-    <div>
+    <div style="display:flex; flex-wrap:wrap; gap:5px;">
       <input type="text" id="newUserName" placeholder="اسم المستخدم">
       <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني">
       <input type="password" id="newPassword" placeholder="كلمة المرور">
@@ -123,9 +107,10 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
       </select>
       <button id="addUserBtn" class="save">إضافة مستخدم</button>
     </div>
-    <div id="usersList">جاري تحميل المستخدمين...</div>
+    <div id="usersList" style="margin-top:10px;">جاري تحميل المستخدمين...</div>
   </div>
 
+  <!-- شارت الزيارات -->
   <div id="visitsControl" class="admin-section">
     <h3>زيارات المستخدمين</h3>
     <canvas id="visitsChart"></canvas>
@@ -139,10 +124,10 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
 
 <script>
 let visitsChart;
-const apiBase = "/api"; // مسار الـ API في server.js
+const apiBase = "/api";
 
 // ===========================
-// تحميل البيانات وحماية الصفحة
+// تحميل الصفحة وحماية الوصول
 // ===========================
 window.onload = async function(){
   const userProfile = await protectPage();
@@ -156,8 +141,12 @@ window.onload = async function(){
   // Sidebar toggle
   const toggleBtn = document.getElementById("toggleSidebar");
   const sidebar = document.querySelector(".sidebar");
-  toggleBtn.onclick = ()=>{ sidebar.classList.toggle("hidden"); toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;"; }
+  toggleBtn.onclick = ()=>{ 
+    sidebar.classList.toggle("hidden"); 
+    toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;"; 
+  };
 
+  // إضافة مستخدم جديد
   document.getElementById("addUserBtn").onclick = async function(){
     const name = document.getElementById("newUserName").value.trim();
     const email = document.getElementById("newUserEmail").value.trim();
@@ -165,17 +154,11 @@ window.onload = async function(){
     const role = document.getElementById("newRole").value;
     if(!name || !email || !password){ alert("املأ جميع الحقول"); return; }
 
-    const res = await fetch(`${apiBase}/add-user`, {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ name,email,password,role })
-    });
-    const data = await res.json();
-    if(data.success){ alert("تم إضافة المستخدم"); loadUsersList(); } 
-    else alert(data.error || "خطأ");
+    const success = await addUser(name,email,password,role);
+    if(success){ alert("تم إضافة المستخدم"); loadUsersList(); }
   };
 
-  document.getElementById("logoutLink").onclick = (e)=>{ e.preventDefault(); logout(); };
+  document.getElementById("logoutLink").onclick = e=>{ e.preventDefault(); logout(); };
 };
 
 // ===========================
@@ -184,10 +167,8 @@ window.onload = async function(){
 async function loadUsersList(){
   const container = document.getElementById("usersList");
   container.innerHTML = "جاري التحميل...";
-  const res = await fetch(`${apiBase}/get-users`);
-  const { users, error } = await res.json();
-  if(error){ container.innerHTML="خطأ"; return; }
-  if(users.length===0){ container.innerHTML="لا يوجد مستخدمين"; return; }
+  const users = await getUsers();
+  if(!users || users.length===0){ container.innerHTML="لا يوجد مستخدمين"; return; }
 
   let html = `<table>
     <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>إجراء</th></tr></thead><tbody>`;
@@ -212,44 +193,56 @@ async function loadUsersList(){
   container.innerHTML = html;
 }
 
-async function updateUserRole(id, role){
-  await fetch(`${apiBase}/update-user`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id, role }) });
-}
 async function updateUser(id){
   const pwd = prompt("أدخل كلمة السر الجديدة:");
   if(!pwd) return;
-  await fetch(`${apiBase}/update-user`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id, password:pwd }) });
-  alert("تم التحديث");
+  const success = await updateUserPassword(id,pwd); // دالة موجودة في auth.js
+  if(success) alert("تم تحديث كلمة المرور");
 }
 async function deleteUser(id){
   if(!confirm("هل تريد حذف المستخدم؟")) return;
-  await fetch(`${apiBase}/delete-user`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id }) });
-  alert("تم الحذف"); loadUsersList();
+  const success = await deleteUser(id);
+  if(success) loadUsersList();
 }
 
 // ===========================
 // شارت الزيارات
 // ===========================
 async function updateVisitsChart(){
-  const res = await fetch(`${apiBase}/visits-stats`);
-  const { stats } = await res.json();
+  const stats = await getVisitStats(); 
   if(!stats) return;
 
-  const labels = Object.keys(stats);
-  const data = Object.values(stats);
+  const labels = [];
+  const data = [];
+  const lastVisits = [];
+  Object.keys(stats).forEach(role=>{
+    labels.push(role);
+    data.push(stats[role].count || stats[role]);
+    lastVisits.push(stats[role].lastVisit || '-');
+  });
 
   const ctx = document.getElementById('visitsChart').getContext('2d');
   if(visitsChart) visitsChart.destroy();
 
   visitsChart = new Chart(ctx,{
     type:'bar',
-    data:{ labels, datasets:[{ label:'عدد الزيارات', data, backgroundColor:'#004b8d' }] },
+    data:{
+      labels,
+      datasets:[{ label:'عدد الزيارات', data, backgroundColor:'#004b8d' }]
+    },
     options:{
       responsive:true, maintainAspectRatio:false,
-      plugins:{ tooltip:{ callbacks:{
-        label: ctx=>`عدد الزيارات: ${ctx.raw}`,
-        afterLabel: ctx=>`آخر زيارة: ${ctx.label}`
-      }}},
+      plugins:{
+        tooltip:{
+          callbacks:{
+            label: ctx=>`عدد الزيارات: ${ctx.raw}`,
+            afterLabel: ctx=>{
+              const role = ctx.label;
+              return `آخر زيارة: ${lastVisits[ctx.dataIndex]}`;
+            }
+          }
+        }
+      },
       scales:{ y:{ beginAtZero:true } }
     }
   });
