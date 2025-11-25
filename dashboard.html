@@ -28,8 +28,8 @@ header {
 }
 
 header span { font-weight: bold; font-size: 1rem; }
-header nav { order: 1; margin-left: 0; }  /* زر تسجيل الخروج أقصى اليسار */
-header > div:first-child { order: 2; margin-left: auto; } /* اسم المستخدم على اليمين */
+header nav { order: 1; margin-left: 0; }
+header > div:first-child { order: 2; margin-left: auto; }
 header a { color: white; text-decoration: none; font-weight: bold; margin-left: 15px; }
 
 /* زر Sidebar */
@@ -162,7 +162,9 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 
   <div id="visitsControl" class="admin-section">
     <h3>زيارات المستخدمين</h3>
-    <canvas id="visitsChart"></canvas>
+    <div style="height:300px; max-width:100%;">
+        <canvas id="visitsChart"></canvas>
+    </div>
   </div>
 </div>
 
@@ -174,9 +176,11 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 <script>
 let visitsChart;
 
-// تحديث شارت الزيارات
+// ===========================
+// شارت الزيارات
+// ===========================
 async function updateVisitsChart(){
-    const stats = await getVisitStats();
+    const stats = await getVisitStats(); // تأكد أن هذه الدالة موجودة في auth.js أو أنشئها
     if (!stats) return;
 
     const roles = Object.keys(stats);
@@ -185,11 +189,11 @@ async function updateVisitsChart(){
     if (!visitsChart) {
         const ctx = document.getElementById('visitsChart').getContext('2d');
         visitsChart = new Chart(ctx, {
-            type:'bar',
-            data:{
+            type: 'bar',
+            data: {
                 labels: roles,
-                datasets:[{
-                    label:'عدد الزيارات',
+                datasets: [{
+                    label: 'عدد الزيارات',
                     data: counts,
                     backgroundColor: roles.map(r => {
                         if(r.toLowerCase()==='admin') return '#004b8d';
@@ -198,7 +202,21 @@ async function updateVisitsChart(){
                     })
                 }]
             },
-            options: { responsive:true, maintainAspectRatio:false }
+            options: {
+                responsive:true,
+                maintainAspectRatio:false,
+                plugins:{
+                    tooltip:{
+                        callbacks:{
+                            label: function(context){ return `عدد الزيارات: ${context.raw}`; },
+                            afterLabel: function(context){ return `آخر زيارة: ${context.label}`; }
+                        }
+                    }
+                },
+                scales:{
+                    y:{ beginAtZero:true }
+                }
+            }
         });
     } else {
         visitsChart.data.labels = roles;
@@ -207,23 +225,93 @@ async function updateVisitsChart(){
     }
 }
 
-// تحميل خرائط Sidebar
-async function loadDynamicMaps(role) {
-    const mapsContainer = document.getElementById("dynamicMapsLinks");
-    mapsContainer.innerHTML = "";
-    const accessibleMaps = await getAccessibleMaps(role); 
-    accessibleMaps.forEach(map => {
-        const a = document.createElement("a");
-        a.href = map.url;
-        a.textContent = map.name;
-        a.target = "_blank"; 
-        mapsContainer.appendChild(a);
+// ===========================
+// إدارة المستخدمين
+// ===========================
+const supabaseUrl = 'YOUR_SUPABASE_URL';
+const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+async function loadUsersList(){
+    const usersContainer = document.getElementById("usersList");
+    usersContainer.innerHTML = "جاري التحميل...";
+
+    const { data: users, error } = await supabase
+        .from("users")
+        .select("*"); 
+
+    if(error){ usersContainer.innerHTML = "خطأ في تحميل المستخدمين"; console.error(error); return; }
+    if(users.length === 0){ usersContainer.innerHTML = "لا يوجد مستخدمين"; return; }
+
+    let html = `<table border="1" cellpadding="5" style="width:100%; text-align:right">
+        <thead>
+            <tr>
+                <th>الاسم</th>
+                <th>البريد</th>
+                <th>الدور</th>
+                <th>كلمة السر</th>
+                <th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody>`;
+
+    users.forEach(user => {
+        html += `<tr>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>
+                <select onchange="updateUserRole('${user.id}', this.value)">
+                    <option value="admin" ${user.role==='admin'?'selected':''}>Admin</option>
+                    <option value="user" ${user.role==='user'?'selected':''}>User</option>
+                    <option value="guest" ${user.role==='guest'?'selected':''}>Guest</option>
+                </select>
+            </td>
+            <td><input type="password" id="pwd-${user.id}" placeholder="كلمة السر الجديدة"></td>
+            <td>
+                <button onclick="updateUser('${user.id}')">حفظ</button>
+                <button onclick="deleteUser('${user.id}')">حذف</button>
+            </td>
+        </tr>`;
     });
+
+    html += "</tbody></table>";
+    usersContainer.innerHTML = html;
 }
 
-// تحميل وحماية الصفحة
-window.onload = async function() {
-    const userProfile = await protectPage();
+async function updateUser(id){
+    const newPwd = document.getElementById(`pwd-${id}`).value;
+    if(!newPwd){ alert("أدخل كلمة السر الجديدة"); return; }
+    const { error } = await supabase.auth.admin.updateUserById(id, { password: newPwd });
+    if(error) alert(error.message);
+    else alert("تم تحديث كلمة السر");
+}
+
+async function updateUserRole(id, role){
+    const { error } = await supabase.from("users").update({ role }).eq("id", id);
+    if(error) alert(error.message);
+}
+
+async function deleteUser(id){
+    if(!confirm("هل تريد حذف هذا المستخدم نهائياً؟")) return;
+    const { error } = await supabase.from("users").delete().eq("id", id);
+    if(error) alert(error.message);
+    else { alert("تم حذف المستخدم"); loadUsersList(); }
+}
+
+async function addUser(name,email,password,role){
+    try{
+        const { data, error } = await supabase.auth.signUp({ email, password });
+        if(error) { alert(error.message); return false; }
+        await supabase.from("users").insert([{ id: data.user.id, name, role }]);
+        return true;
+    }catch(err){ console.error(err); return false; }
+}
+
+// ===========================
+// تحميل الصفحة وحماية الوصول
+// ===========================
+window.onload = async function(){
+    const userProfile = await protectPage(); // تأكد أن الدالة موجودة في auth.js
     if(!userProfile){ window.location.href="index.html"; return; }
 
     if(userProfile.role !== "admin"){
@@ -236,14 +324,14 @@ window.onload = async function() {
 
     document.getElementById("userName").innerText = userProfile.name || userProfile.email;
 
-    ["adminAccounts","visitsControl"].forEach(id=> {
+    ["adminAccounts","visitsControl"].forEach(id=>{
         const el=document.getElementById(id);
         if(el) el.style.display="block";
     });
 
     await loadUsersList(); 
     await updateVisitsChart(); 
-    await loadDynamicMaps(userProfile.role);
+    await loadDynamicMaps(userProfile.role); // تأكد من وجود هذه الدالة
 
     const toggleBtn = document.getElementById("toggleSidebar");
     const sidebar = document.querySelector(".sidebar");
@@ -252,7 +340,6 @@ window.onload = async function() {
         toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
     };
 
-    // إضافة مستخدم جديد
     document.getElementById("addUserBtn").onclick = async function() {
         const name = document.getElementById("newUserName").value.trim();
         const email = document.getElementById("newUserEmail").value.trim();
@@ -261,7 +348,7 @@ window.onload = async function() {
 
         if(!name || !email || !password){ alert("املأ جميع الحقول"); return; }
 
-        const success = await addUser(name, email, password, role); 
+        const success = await addUser(name,email,password,role); 
 
         if(success){
             alert("تم إضافة المستخدم بنجاح!");
@@ -273,16 +360,7 @@ window.onload = async function() {
         }
     };
 
-    // تسجيل الخروج
     document.getElementById("logoutLink").onclick = (e)=>{ e.preventDefault(); logout(); };
-
-    // دالة حذف المستخدم
-    window.deleteUser = async function(userId){
-        if(!confirm("هل تريد حذف هذا المستخدم نهائياً؟")) return;
-        await deleteUser(userId);
-        await loadUsersList(); 
-        await updateVisitsChart(); 
-    }
 };
 </script>
 </body>
