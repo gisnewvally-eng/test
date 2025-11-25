@@ -5,125 +5,91 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard - جهاز معلومات شبكات المرافق</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/auth.js"></script>
-
 <style>
 /* =======================
-   هيدر ثابت ومتناسق
+   الهيدر
 ======================= */
+body { margin:0; font-family:sans-serif; }
 header {
   background: linear-gradient(90deg,#00F260,#0575E6);
-  color: white;
-  padding: 15px 25px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1001;
-  flex-wrap: wrap;
+  color:white;
+  padding:15px 25px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  position:fixed;
+  top:0; left:0; right:0;
+  z-index:1001;
+  flex-wrap:wrap;
 }
-
-header span { font-weight: bold; font-size: 1rem; }
-header nav { order: 1; margin-left: 0; }
-header > div:first-child { order: 2; margin-left: auto; }
-header a { color: white; text-decoration: none; font-weight: bold; margin-left: 15px; }
-
-/* زر Sidebar */
-#toggleSidebar {
-  position: fixed;
-  top: 80px;
-  left: 0;
-  width: 30px;
-  height: 30px;
-  background: #1a2980;
-  color: white;
-  font-size: 24px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 0 5px 5px 0;
-  cursor: pointer;
-  z-index: 1100;
-  transition: background 0.3s;
-}
-#toggleSidebar:hover { background: #26d0ce; }
+header span { font-weight:bold; font-size:1rem; }
+header nav a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; }
 
 /* Sidebar */
+#toggleSidebar {
+  position:fixed; top:80px; left:0; width:30px; height:30px;
+  background:#1a2980; color:white; font-size:24px;
+  display:flex; justify-content:center; align-items:center;
+  border-radius:0 5px 5px 0; cursor:pointer; z-index:1100;
+  transition:0.3s;
+}
+#toggleSidebar:hover { background:#26d0ce; }
 .sidebar {
-  width: 220px;
-  background: #2c3e50;
-  color: white;
-  position: fixed;
-  top: 70px;
-  left: 0;
-  height: calc(100% - 70px);
-  padding: 20px;
-  overflow-y: auto;
-  transition: transform 0.3s ease;
+  width:220px; background:#2c3e50; color:white;
+  position:fixed; top:70px; left:0;
+  height:calc(100% - 70px); padding:20px;
+  overflow-y:auto; transition:transform 0.3s ease;
 }
-.sidebar.hidden { transform: translateX(-250px); }
-.sidebar a {
-  color: white;
-  text-decoration: none;
-  display: block;
-  margin: 12px 0;
-  padding: 5px;
-  transition: padding-left 0.3s, background 0.3s;
-}
+.sidebar.hidden { transform:translateX(-250px); }
+.sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; padding:5px; transition:0.3s; }
 .sidebar a:hover { background:#34495e; padding-left:10px; }
 
 /* المحتوى الرئيسي */
-.main-content {
-  margin-top: 70px;
-  margin-left: 240px;
-  padding: 30px;
-  padding-bottom: 60px;
-  transition: margin-left 0.3s;
-}
+.main-content { margin-top:70px; margin-left:240px; padding:30px; padding-bottom:60px; transition:0.3s; }
 
 /* Footer */
-footer {
-  position: fixed;
-  bottom:0;
-  left:0;
-  right:0;
-  background: linear-gradient(90deg,#00F260,#0575E6);
-  color:#fff;
-  display:flex;
-  flex-direction: column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  font-weight:700;
-  padding:6px 0;
-  z-index:1000;
+footer { position:fixed; bottom:0; left:0; right:0;
+  background:linear-gradient(90deg,#00F260,#0575E6);
+  color:#fff; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; text-align:center;
+  font-weight:700; padding:6px 0; z-index:1000;
 }
 footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 
 /* =======================
+   جداول المستخدمين أنيقة
+======================= */
+.admin-section { margin-bottom:40px; }
+table { width:100%; border-collapse:collapse; }
+table th, table td { padding:10px; text-align:right; border-bottom:1px solid #ccc; }
+table th { background:#00a86b; color:white; }
+table tr:hover { background:#f2f2f2; }
+button { padding:5px 10px; margin:2px; border:none; border-radius:4px; cursor:pointer; transition:0.3s; }
+button.save { background:#004b8d; color:white; }
+button.delete { background:#e74c3c; color:white; }
+button.save:hover { background:#002f5a; }
+button.delete:hover { background:#c0392b; }
+
+/* ألوان الحقول */
+input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4px; }
+
+/* =======================
+   شارت زيارات أصغر
+======================= */
+#visitsChart { height:200px !important; max-width:100%; }
+
+/* =======================
    متجاوب
 ======================= */
-@media (max-width: 1024px) {
-  .main-content { margin-left: 220px; padding: 20px; }
+@media (max-width:768px) {
+  .main-content { margin-left:0; padding:15px; }
+  .sidebar { width:200px; top:70px; height:calc(100%-70px); }
+  #toggleSidebar { top:70px; }
 }
-@media (max-width: 768px) {
-  header { flex-direction: column; align-items: flex-start; padding: 10px 15px; }
-  header > div:first-child { margin-left: 0; order: 1; }
-  header nav { order: 2; margin-top: 5px; }
-  .main-content { margin-left: 0; padding: 15px; }
-  .sidebar { width: 200px; top: 70px; height: calc(100% - 70px); }
-  #toggleSidebar { top: 70px; }
-}
-@media (max-width: 480px) {
-  header { padding: 8px 10px; }
-  header span { font-size: 0.9rem; }
-  .sidebar { width: 180px; padding: 15px; }
-  .main-content { padding: 10px; }
-  #toggleSidebar { width: 28px; height: 28px; font-size: 20px; top: 70px; }
+@media (max-width:480px) {
+  .sidebar { width:180px; padding:15px; }
+  #toggleSidebar { width:28px; height:28px; font-size:20px; top:70px; }
 }
 </style>
 </head>
@@ -133,235 +99,162 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
   <nav><a href="#" id="logoutLink">تسجيل الخروج</a></nav>
   <div>مرحبا، <span id="userName"></span></div>
 </header>
-  
-<div id="toggleSidebar">&#9776;</div>
 
+<div id="toggleSidebar">&#9776;</div>
 <div class="sidebar">
   <h4>قائمة الأدمن</h4>
-  <a id="managePagesMenu" href="manage-pages.html">إدارة الخرائط</a>
+  <a href="manage-pages.html">إدارة الخرائط</a>
   <div id="dynamicMapsLinks"></div>
 </div>
 
 <div class="main-content">
-  <h2>لوحة تحكم المسؤول (Admin)</h2>
+  <h2>لوحة تحكم المسؤول</h2>
 
   <div id="adminAccounts" class="admin-section">
     <h3>إدارة الحسابات</h3>
-    <input type="text" id="newUserName" placeholder="اسم المستخدم">
-    <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني">
-    <input type="password" id="newPassword" placeholder="كلمة المرور">
-    <select id="newRole">
-      <option value="admin">Admin</option>
-      <option value="user">User</option>
-      <option value="guest">Guest</option>
-    </select>
-    <button id="addUserBtn">إضافة مستخدم</button>
-    <h4>المستخدمون الحاليون</h4>
+    <div>
+      <input type="text" id="newUserName" placeholder="اسم المستخدم">
+      <input type="email" id="newUserEmail" placeholder="البريد الإلكتروني">
+      <input type="password" id="newPassword" placeholder="كلمة المرور">
+      <select id="newRole">
+        <option value="admin">Admin</option>
+        <option value="user">User</option>
+        <option value="guest">Guest</option>
+      </select>
+      <button id="addUserBtn" class="save">إضافة مستخدم</button>
+    </div>
     <div id="usersList">جاري تحميل المستخدمين...</div>
   </div>
 
   <div id="visitsControl" class="admin-section">
     <h3>زيارات المستخدمين</h3>
-    <div style="height:300px; max-width:100%;">
-        <canvas id="visitsChart"></canvas>
-    </div>
+    <canvas id="visitsChart"></canvas>
   </div>
 </div>
 
 <footer>
   إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
-  <span class="line2">Designed By Eng. Ahmed Labib </span>
+  <span class="line2">Designed By Eng. Ahmed Labib</span>
 </footer>
 
 <script>
 let visitsChart;
+const apiBase = "/api"; // مسار الـ API في server.js
+
+// ===========================
+// تحميل البيانات وحماية الصفحة
+// ===========================
+window.onload = async function(){
+  const userProfile = await protectPage();
+  if(!userProfile){ window.location.href="index.html"; return; }
+  if(userProfile.role !== "admin"){ alert("ليس لديك صلاحية الوصول"); window.location.href="index.html"; return; }
+
+  document.getElementById("userName").innerText = userProfile.name || userProfile.email;
+  await loadUsersList();
+  await updateVisitsChart();
+
+  // Sidebar toggle
+  const toggleBtn = document.getElementById("toggleSidebar");
+  const sidebar = document.querySelector(".sidebar");
+  toggleBtn.onclick = ()=>{ sidebar.classList.toggle("hidden"); toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;"; }
+
+  document.getElementById("addUserBtn").onclick = async function(){
+    const name = document.getElementById("newUserName").value.trim();
+    const email = document.getElementById("newUserEmail").value.trim();
+    const password = document.getElementById("newPassword").value;
+    const role = document.getElementById("newRole").value;
+    if(!name || !email || !password){ alert("املأ جميع الحقول"); return; }
+
+    const res = await fetch(`${apiBase}/add-user`, {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ name,email,password,role })
+    });
+    const data = await res.json();
+    if(data.success){ alert("تم إضافة المستخدم"); loadUsersList(); } 
+    else alert(data.error || "خطأ");
+  };
+
+  document.getElementById("logoutLink").onclick = (e)=>{ e.preventDefault(); logout(); };
+};
+
+// ===========================
+// إدارة المستخدمين
+// ===========================
+async function loadUsersList(){
+  const container = document.getElementById("usersList");
+  container.innerHTML = "جاري التحميل...";
+  const res = await fetch(`${apiBase}/get-users`);
+  const { users, error } = await res.json();
+  if(error){ container.innerHTML="خطأ"; return; }
+  if(users.length===0){ container.innerHTML="لا يوجد مستخدمين"; return; }
+
+  let html = `<table>
+    <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>إجراء</th></tr></thead><tbody>`;
+  users.forEach(u=>{
+    html+=`<tr>
+      <td>${u.name}</td>
+      <td>${u.username || u.email}</td>
+      <td>
+        <select onchange="updateUserRole('${u.id}',this.value)">
+          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+          <option value="user" ${u.role==='user'?'selected':''}>User</option>
+          <option value="guest" ${u.role==='guest'?'selected':''}>Guest</option>
+        </select>
+      </td>
+      <td>
+        <button class="save" onclick="updateUser('${u.id}')">حفظ</button>
+        <button class="delete" onclick="deleteUser('${u.id}')">حذف</button>
+      </td>
+    </tr>`;
+  });
+  html+="</tbody></table>";
+  container.innerHTML = html;
+}
+
+async function updateUserRole(id, role){
+  await fetch(`${apiBase}/update-user`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id, role }) });
+}
+async function updateUser(id){
+  const pwd = prompt("أدخل كلمة السر الجديدة:");
+  if(!pwd) return;
+  await fetch(`${apiBase}/update-user`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id, password:pwd }) });
+  alert("تم التحديث");
+}
+async function deleteUser(id){
+  if(!confirm("هل تريد حذف المستخدم؟")) return;
+  await fetch(`${apiBase}/delete-user`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ userId:id }) });
+  alert("تم الحذف"); loadUsersList();
+}
 
 // ===========================
 // شارت الزيارات
 // ===========================
 async function updateVisitsChart(){
-    const stats = await getVisitStats(); // تأكد أن هذه الدالة موجودة في auth.js أو أنشئها
-    if (!stats) return;
+  const res = await fetch(`${apiBase}/visits-stats`);
+  const { stats } = await res.json();
+  if(!stats) return;
 
-    const roles = Object.keys(stats);
-    const counts = Object.values(stats);
+  const labels = Object.keys(stats);
+  const data = Object.values(stats);
 
-    if (!visitsChart) {
-        const ctx = document.getElementById('visitsChart').getContext('2d');
-        visitsChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: roles,
-                datasets: [{
-                    label: 'عدد الزيارات',
-                    data: counts,
-                    backgroundColor: roles.map(r => {
-                        if(r.toLowerCase()==='admin') return '#004b8d';
-                        if(r.toLowerCase()==='guest') return '#96c93d';
-                        return '#2c3e50';
-                    })
-                }]
-            },
-            options: {
-                responsive:true,
-                maintainAspectRatio:false,
-                plugins:{
-                    tooltip:{
-                        callbacks:{
-                            label: function(context){ return `عدد الزيارات: ${context.raw}`; },
-                            afterLabel: function(context){ return `آخر زيارة: ${context.label}`; }
-                        }
-                    }
-                },
-                scales:{
-                    y:{ beginAtZero:true }
-                }
-            }
-        });
-    } else {
-        visitsChart.data.labels = roles;
-        visitsChart.data.datasets[0].data = counts;
-        visitsChart.update();
+  const ctx = document.getElementById('visitsChart').getContext('2d');
+  if(visitsChart) visitsChart.destroy();
+
+  visitsChart = new Chart(ctx,{
+    type:'bar',
+    data:{ labels, datasets:[{ label:'عدد الزيارات', data, backgroundColor:'#004b8d' }] },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ tooltip:{ callbacks:{
+        label: ctx=>`عدد الزيارات: ${ctx.raw}`,
+        afterLabel: ctx=>`آخر زيارة: ${ctx.label}`
+      }}},
+      scales:{ y:{ beginAtZero:true } }
     }
+  });
 }
-
-// ===========================
-// إدارة المستخدمين
-// ===========================
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-async function loadUsersList(){
-    const usersContainer = document.getElementById("usersList");
-    usersContainer.innerHTML = "جاري التحميل...";
-
-    const { data: users, error } = await supabase
-        .from("users")
-        .select("*"); 
-
-    if(error){ usersContainer.innerHTML = "خطأ في تحميل المستخدمين"; console.error(error); return; }
-    if(users.length === 0){ usersContainer.innerHTML = "لا يوجد مستخدمين"; return; }
-
-    let html = `<table border="1" cellpadding="5" style="width:100%; text-align:right">
-        <thead>
-            <tr>
-                <th>الاسم</th>
-                <th>البريد</th>
-                <th>الدور</th>
-                <th>كلمة السر</th>
-                <th>إجراء</th>
-            </tr>
-        </thead>
-        <tbody>`;
-
-    users.forEach(user => {
-        html += `<tr>
-            <td>${user.name}</td>
-            <td>${user.email}</td>
-            <td>
-                <select onchange="updateUserRole('${user.id}', this.value)">
-                    <option value="admin" ${user.role==='admin'?'selected':''}>Admin</option>
-                    <option value="user" ${user.role==='user'?'selected':''}>User</option>
-                    <option value="guest" ${user.role==='guest'?'selected':''}>Guest</option>
-                </select>
-            </td>
-            <td><input type="password" id="pwd-${user.id}" placeholder="كلمة السر الجديدة"></td>
-            <td>
-                <button onclick="updateUser('${user.id}')">حفظ</button>
-                <button onclick="deleteUser('${user.id}')">حذف</button>
-            </td>
-        </tr>`;
-    });
-
-    html += "</tbody></table>";
-    usersContainer.innerHTML = html;
-}
-
-async function updateUser(id){
-    const newPwd = document.getElementById(`pwd-${id}`).value;
-    if(!newPwd){ alert("أدخل كلمة السر الجديدة"); return; }
-    const { error } = await supabase.auth.admin.updateUserById(id, { password: newPwd });
-    if(error) alert(error.message);
-    else alert("تم تحديث كلمة السر");
-}
-
-async function updateUserRole(id, role){
-    const { error } = await supabase.from("users").update({ role }).eq("id", id);
-    if(error) alert(error.message);
-}
-
-async function deleteUser(id){
-    if(!confirm("هل تريد حذف هذا المستخدم نهائياً؟")) return;
-    const { error } = await supabase.from("users").delete().eq("id", id);
-    if(error) alert(error.message);
-    else { alert("تم حذف المستخدم"); loadUsersList(); }
-}
-
-async function addUser(name,email,password,role){
-    try{
-        const { data, error } = await supabase.auth.signUp({ email, password });
-        if(error) { alert(error.message); return false; }
-        await supabase.from("users").insert([{ id: data.user.id, name, role }]);
-        return true;
-    }catch(err){ console.error(err); return false; }
-}
-
-// ===========================
-// تحميل الصفحة وحماية الوصول
-// ===========================
-window.onload = async function(){
-    const userProfile = await protectPage(); // تأكد أن الدالة موجودة في auth.js
-    if(!userProfile){ window.location.href="index.html"; return; }
-
-    if(userProfile.role !== "admin"){
-        alert("ليس لديك صلاحية الوصول لهذه الصفحة، سيتم توجيهك.");
-        if(userProfile.role==="user") window.location.href="user.html";
-        else if(userProfile.role==="guest") window.location.href="guest.html";
-        else logout();
-        return;
-    }
-
-    document.getElementById("userName").innerText = userProfile.name || userProfile.email;
-
-    ["adminAccounts","visitsControl"].forEach(id=>{
-        const el=document.getElementById(id);
-        if(el) el.style.display="block";
-    });
-
-    await loadUsersList(); 
-    await updateVisitsChart(); 
-    await loadDynamicMaps(userProfile.role); // تأكد من وجود هذه الدالة
-
-    const toggleBtn = document.getElementById("toggleSidebar");
-    const sidebar = document.querySelector(".sidebar");
-    toggleBtn.onclick = function() {
-        sidebar.classList.toggle("hidden"); 
-        toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
-    };
-
-    document.getElementById("addUserBtn").onclick = async function() {
-        const name = document.getElementById("newUserName").value.trim();
-        const email = document.getElementById("newUserEmail").value.trim();
-        const password = document.getElementById("newPassword").value;
-        const role = document.getElementById("newRole").value;
-
-        if(!name || !email || !password){ alert("املأ جميع الحقول"); return; }
-
-        const success = await addUser(name,email,password,role); 
-
-        if(success){
-            alert("تم إضافة المستخدم بنجاح!");
-            document.getElementById("newUserName").value="";
-            document.getElementById("newUserEmail").value="";
-            document.getElementById("newPassword").value="";
-            await loadUsersList(); 
-            await updateVisitsChart(); 
-        }
-    };
-
-    document.getElementById("logoutLink").onclick = (e)=>{ e.preventDefault(); logout(); };
-};
 </script>
+
 </body>
 </html>
