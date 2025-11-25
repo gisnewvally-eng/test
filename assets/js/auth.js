@@ -5,6 +5,14 @@ const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_JK3bRv-u0gaoduyKQFBUeg_yhKc9p5y";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ------------------ روابط الصور العامة (لاستعمال addMap) ------------------
+const mapImages = {
+  "سكنية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/residential.png",
+  "صناعية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/industrial.png",
+  "تجارية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/commercial.png",
+  "خدمية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/services.png"
+};
+
 // ------------------ دوال تتبع الزيارات والإحصائيات ------------------
 async function trackVisit(userId) {
     const { error } = await supabaseClient.from('visits').insert({ user_id: userId });
@@ -169,9 +177,11 @@ async function addMap(name, url, roles, type="سكنية"){
         url,
         allowed_roles: roles,
         type,
-        image_url: mapImages[type] // ← أضف هذا
+        image_url: mapImages[type] // ← إضافة image_url
     });
-
+    if(error){ alert("خطأ في إضافة الخريطة: " + error.message); return false; }
+    return true;
+}
 
 async function deleteMap(mapId){
     const { error } = await supabaseClient.from("maps").delete().eq('id', mapId);
@@ -197,5 +207,3 @@ window.addUser = addUser;
 window.getAccessibleMaps = getAccessibleMaps;
 window.addMap = addMap;
 window.deleteMap = deleteMap;
-
-
