@@ -164,10 +164,14 @@ async function getAccessibleMaps(userRole) {
 }
 
 async function addMap(name, url, roles, type="سكنية"){
-    const { error } = await supabaseClient.from("maps").insert({ name, url, allowed_roles: roles, type });
-    if(error){ alert("خطأ في إضافة الخريطة: " + error.message); return false; }
-    return true;
-}
+    const { error } = await supabaseClient.from("maps").insert({
+        name,
+        url,
+        allowed_roles: roles,
+        type,
+        image_url: mapImages[type] // ← أضف هذا
+    });
+
 
 async function deleteMap(mapId){
     const { error } = await supabaseClient.from("maps").delete().eq('id', mapId);
@@ -193,4 +197,5 @@ window.addUser = addUser;
 window.getAccessibleMaps = getAccessibleMaps;
 window.addMap = addMap;
 window.deleteMap = deleteMap;
+
 
