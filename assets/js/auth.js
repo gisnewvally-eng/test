@@ -1,11 +1,13 @@
-// ------------------ auth.js (نسخة محدثة وشاملة) ------------------
+// ------------------ auth.js (نسخة محدثة للعمل مع السيرفر) ------------------
 
-// 1️⃣ تهيئة Supabase
+// 1️⃣ تهيئة Supabase (لإدارة الخرائط والزيارات فقط)
 const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_JK3bRv-u0gaoduyKQFBUeg_yhKc9p5y";
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// ------------------ روابط الصور العامة للخرائط والشعار ------------------
+// 2️⃣ رابط السيرفر (Vercel / Node.js)
+const SERVER_API = "https://supabase-admin-api-gisnewvallys-projects.vercel.app";
+// ------------------ روابط الصور للخرائط والشعار ------------------
 const mapImages = {
   "سكنية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/residential.png",
   "صناعية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/industrial.png",
@@ -13,14 +15,12 @@ const mapImages = {
   "خدمية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/services.png",
   "logo": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/logo.png"
 };
-
 // ------------------ تتبع الزيارات ------------------
 async function trackVisit(userId){
     if(!userId) return;
     const { error } = await supabaseClient.from('visits').insert({ user_id: userId });
     if(error) console.error("Failed to track visit:", error);
 }
-
 async function getVisitStats(){
     const { data: visits, error } = await supabaseClient.from('visits').select('user_id, profiles(role)');
     if(error){ console.error(error); return null; }
@@ -96,37 +96,66 @@ async function checkSessionOnly(){
     return { ...profile, email: profile.email, name: profile.name || profile.username || user.email.split('@')[0] };
 }
 
-// ------------------ إدارة المستخدمين ------------------
+// ------------------ إدارة المستخدمين عبر السيرفر ------------------
 async function getUsers(){
-    const { data: profiles, error } = await supabaseClient.from("profiles").select("id, role, username, name, created_at");
-    if(error) return [];
-    return profiles;
+    try {
+        const res = await fetch(`${SERVER_API}/get-users`);
+        const data = await res.json();
+        return data.users || [];
+    } catch(e){ console.error(e); return []; }
 }
 
 async function addUser(name,email,password,role){
-    if(!name || !email || !password){ alert("املأ جميع الحقول"); return false; }
-
-    const { data: user, error } = await supabaseClient.auth.signUp({ email, password });
-    if(error){ alert("خطأ في إنشاء المستخدم: "+error.message); return false; }
-    if(!user || !user.user){ alert("فشل في إنشاء المستخدم"); return false; }
-
-    const { error: profileError } = await supabaseClient.from("profiles").insert([{ id: user.user.id, role, username: email.split('@')[0], name }]);
-    if(profileError){ alert("خطأ في حفظ بيانات المستخدم: "+profileError.message); return false; }
-
-    return true;
+    try {
+        const res = await fetch(`${SERVER_API}/add-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ name,email,password,role })
+        });
+        const data = await res.json();
+        if(data.success) return true;
+        alert(data.error || "خطأ في إضافة المستخدم");
+        return false;
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); return false; }
 }
 
 async function deleteUser(userId){
-    if(!userId){ alert("userId مطلوب"); return; }
-    await supabaseClient.from("profiles").delete().eq("id", userId);
-    await supabaseClient.from("visits").delete().eq("user_id", userId);
-    alert("لحذف المستخدم نهائياً من Supabase Auth يجب تنفيذها من الخادم.");
+    try {
+        const res = await fetch(`${SERVER_API}/delete-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ userId })
+        });
+        const data = await res.json();
+        if(data.success) return true;
+        alert(data.error || "خطأ في حذف المستخدم");
+        return false;
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); return false; }
 }
 
 async function updateUserRole(userId, role){
-    if(!userId || !role) return;
-    const { error } = await supabaseClient.from("profiles").update({ role }).eq("id", userId);
-    if(error) alert(error.message);
+    try {
+        const res = await fetch(`${SERVER_API}/update-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ userId, role })
+        });
+        const data = await res.json();
+        if(!data.success) alert(data.error || "خطأ في تحديث الدور");
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); }
+}
+
+async function updateUserPassword(userId,password){
+    try {
+        const res = await fetch(`${SERVER_API}/update-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ userId, password })
+        });
+        const data = await res.json();
+        if(!data.success){ alert(data.error || "خطأ في تغيير كلمة المرور"); return false; }
+        return true;
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); return false; }
 }
 
 // ------------------ إدارة الخرائط ------------------
@@ -164,7 +193,8 @@ window.loadUsersList = getUsers;
 window.deleteUser = deleteUser;
 window.addUser = addUser;
 window.updateUserRole = updateUserRole;
+window.updateUserPassword = updateUserPassword;
 window.getAccessibleMaps = getAccessibleMaps;
 window.addMap = addMap;
 window.deleteMap = deleteMap;
-window.mapImages = mapImages; // ✅ تصدير روابط الصور بما فيها logo
+window.mapImages = mapImages;
