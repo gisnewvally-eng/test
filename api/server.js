@@ -6,8 +6,9 @@ const { createClient } = require("@supabase/supabase-js");
 const app = express();
 
 // ---- إعدادات CORS ----
+// ضع هنا دومين Dashboard (Front-end) الذي يستدعي السيرفر
 const corsOptions = {
-  origin: '*', // ✅ يمكنك تغييره إلى الدومين الفعلي إذا أحببت
+  origin: 'https://supabase-admin-api-xi.vercel.app', // غيره إذا تغير الدومين
   methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 };
@@ -57,11 +58,9 @@ app.post("/delete-user", async (req, res) => {
         const { userId } = req.body;
         if(!userId) return res.status(400).json({ error: "userId مطلوب" });
 
-        // حذف من جدول profiles وvisits
         await supabase.from("profiles").delete().eq("id", userId);
         await supabase.from("visits").delete().eq("user_id", userId);
 
-        // حذف من Auth
         const { error } = await supabase.auth.admin.deleteUser(userId);
         if(error) return handleError(res, error);
 
