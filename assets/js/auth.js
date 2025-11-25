@@ -1,177 +1,201 @@
-// =====================
-//  إعداد رابط API الصحيح
-// =====================
-const SERVER_API = "https://supabase-admin-api-xi.vercel.app/api";
+// ------------------ auth.js (نسخة محدثة للعمل مع السيرفر) ------------------
 
+// 1️⃣ تهيئة Supabase (لإدارة الخرائط والزيارات فقط)
+const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12eGpxdHZtbmliaHh0ZnV1Zmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4NDU0NDAsImV4cCI6MjA3OTQyMTQ0MH0.P_s2APZULn9VLrEoyttWBsT-TR9Vf9J5WM-DFwjmWb0";
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// =====================
-// تسجيل دخول الأدمن
-// =====================
-async function adminLogin(event) {
-  event.preventDefault();
-
-  const username = document.getElementById("admin-username").value;
-  const password = document.getElementById("admin-password").value;
-
-  try {
-    const response = await fetch(`${SERVER_API}/login-admin`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+// 2️⃣ رابط السيرفر (Vercel / Node.js)
+const SERVER_API = "https://supabase-admin-api-xi.vercel.app/api"
+// ------------------ روابط الصور للخرائط والشعار ------------------
+const mapImages = {
+  "سكنية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/residential.png",
+  "صناعية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/industrial.png",
+  "تجارية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/commercial.png",
+  "خدمية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/services.png",
+  "logo": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/logo.png"
+};
+// ------------------ تتبع الزيارات ------------------
+async function trackVisit(userId){
+    if(!userId) return;
+    const { error } = await supabaseClient.from('visits').insert({ user_id: userId });
+    if(error) console.error("Failed to track visit:", error);
+}
+async function getVisitStats(){
+    const { data: visits, error } = await supabaseClient.from('visits').select('user_id, profiles(role)');
+    if(error){ console.error(error); return null; }
+    const stats = {};
+    visits.forEach(v=>{
+        const role = v.profiles ? v.profiles.role : 'Unknown';
+        stats[role] = (stats[role] || 0) + 1;
     });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.error || "خطأ في تسجيل الدخول");
-      return;
-    }
-
-    localStorage.setItem("admin", "true");
-    window.location.href = "dashboard.html";
-  } catch (error) {
-    console.error("login error:", error);
-    alert("حدث خطأ أثناء محاولة تسجيل الدخول");
-  }
+    return stats;
 }
 
+// ------------------ تسجيل الدخول والخروج ------------------
+async function login(email,password){
+    if(!email || !password){ alert("أدخل البريد وكلمة المرور"); return; }
 
+    const { data: session, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+    if(error){ alert("البريد أو كلمة المرور خاطئة"); return; }
+    if(!session || !session.user){ alert("فشل في إنشاء الجلسة"); return; }
 
-// =====================
-// منع دخول غير الأدمن للداشبورد
-// =====================
-function checkAdminAccess() {
-  if (!localStorage.getItem("admin")) {
-    window.location.href = "login.html";
-  }
+    const { data: profile, error: profileError } = await supabaseClient.from("profiles").select("role, name, username").eq("id", session.user.id).single();
+    if(profileError){ alert("خطأ في جلب بيانات المستخدم"); console.error(profileError); return; }
+
+    trackVisit(session.user.id);
+
+    localStorage.setItem("sessionUser", JSON.stringify({
+        id: session.user.id,
+        email: session.user.email,
+        role: profile.role,
+        name: profile.name || profile.username || session.user.email.split('@')[0]
+    }));
+
+    if(profile.role==="admin") window.location.href="dashboard.html";
+    else if(profile.role==="user") window.location.href="user.html";
+    else if(profile.role==="guest") window.location.href="guest.html";
+    else window.location.href="index.html";
 }
 
-
-
-// =====================
-// تسجيل خروج الأدمن
-// =====================
-function adminLogout() {
-  localStorage.removeItem("admin");
-  window.location.href = "login.html";
+async function logout(){
+    await supabaseClient.auth.signOut();
+    localStorage.removeItem("sessionUser");
+    window.location.href="index.html";
 }
 
+// ------------------ حماية الصفحات ------------------
+async function protectPage(){
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user){ window.location.href="index.html"; return null; }
 
+    const { data: profile, error } = await supabaseClient.from("profiles").select("id, role, username, name, email").eq("id", user.id).single();
+    if(error || !profile){ await logout(); return null; }
 
-// =====================
-// إضافة مستخدم جديد
-// =====================
-async function addUser() {
-  const username = document.getElementById("new-username").value;
-  const password = document.getElementById("new-password").value;
-  const role = document.getElementById("new-role").value;
+    trackVisit(user.id);
 
-  if (!username || !password) {
-    alert("يجب إدخال اسم المستخدم وكلمة المرور");
-    return;
-  }
+    localStorage.setItem("sessionUser", JSON.stringify({
+        id: user.id,
+        email: profile.email,
+        role: profile.role,
+        name: profile.name || profile.username || user.email.split('@')[0]
+    }));
 
-  try {
-    const response = await fetch(`${SERVER_API}/add-user`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password, role })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.error || "تعذرت إضافة المستخدم");
-      return;
-    }
-
-    alert("تمت إضافة المستخدم بنجاح");
-    loadUsersList();
-  } catch (error) {
-    console.error("add user error:", error);
-    alert("حدث خطأ أثناء إضافة المستخدم");
-  }
+    return { ...profile, email: profile.email };
 }
 
+async function checkSessionOnly(){
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return null;
 
+    const { data: profile, error } = await supabaseClient.from("profiles").select("role, username, name, email").eq("id", user.id).single();
+    if(error || !profile) return null;
 
-// =====================
-// جلب قائمة المستخدمين بالكامل
-// =====================
-async function getUsers() {
-  try {
-    const response = await fetch(`${SERVER_API}/get-users`);
+    trackVisit(user.id);
 
-    const text = await response.text(); // نقرأ الرد كما هو
+    return { ...profile, email: profile.email, name: profile.name || profile.username || user.email.split('@')[0] };
+}
 
+// ------------------ إدارة المستخدمين عبر السيرفر ------------------
+async function getUsers(){
     try {
-      const data = JSON.parse(text);
-      if (!response.ok) return [];
-      return data.users || [];
-    } catch (jsonError) {
-      console.error("JSON parse error:", jsonError, text);
-      return [];
-    }
-
-  } catch (error) {
-    console.error("fetch users error:", error);
-    return [];
-  }
+        const res = await fetch(`${SERVER_API}/get-users`);
+        const data = await res.json();
+        return data.users || [];
+    } catch(e){ console.error(e); return []; }
 }
 
-
-
-// =====================
-// تحميل المستخدمين داخل الجدول
-// =====================
-async function loadUsersList() {
-  const users = await getUsers();
-  const tableBody = document.getElementById("users-table-body");
-
-  tableBody.innerHTML = "";
-
-  users.forEach(user => {
-    const row = `
-      <tr>
-        <td>${user.id}</td>
-        <td>${user.username}</td>
-        <td>${user.role}</td>
-        <td>
-          <button onclick="deleteUser(${user.id})">حذف</button>
-        </td>
-      </tr>
-    `;
-    tableBody.innerHTML += row;
-  });
+async function addUser(name,email,password,role){
+    try {
+        const res = await fetch(`${SERVER_API}/add-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ name,email,password,role })
+        });
+        const data = await res.json();
+        if(data.success) return true;
+        alert(data.error || "خطأ في إضافة المستخدم");
+        return false;
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); return false; }
 }
 
-
-
-// =====================
-// حذف مستخدم
-// =====================
-async function deleteUser(id) {
-  if (!confirm("هل أنت متأكد من حذف هذا المستخدم؟")) return;
-
-  try {
-    const response = await fetch(`${SERVER_API}/delete-user`, {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id })
-    });
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      alert(data.error || "تعذرت عملية الحذف");
-      return;
-    }
-
-    alert("تم حذف المستخدم");
-    loadUsersList();
-
-  } catch (error) {
-    console.error("delete error:", error);
-    alert("حدث خطأ أثناء الحذف");
-  }
+async function deleteUser(userId){
+    try {
+        const res = await fetch(`${SERVER_API}/delete-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ userId })
+        });
+        const data = await res.json();
+        if(data.success) return true;
+        alert(data.error || "خطأ في حذف المستخدم");
+        return false;
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); return false; }
 }
+
+async function updateUserRole(userId, role){
+    try {
+        const res = await fetch(`${SERVER_API}/update-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ userId, role })
+        });
+        const data = await res.json();
+        if(!data.success) alert(data.error || "خطأ في تحديث الدور");
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); }
+}
+
+async function updateUserPassword(userId,password){
+    try {
+        const res = await fetch(`${SERVER_API}/update-user`, {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body: JSON.stringify({ userId, password })
+        });
+        const data = await res.json();
+        if(!data.success){ alert(data.error || "خطأ في تغيير كلمة المرور"); return false; }
+        return true;
+    } catch(e){ console.error(e); alert("خطأ في الاتصال بالسيرفر"); return false; }
+}
+
+// ------------------ إدارة الخرائط ------------------
+async function getAccessibleMaps(userRole){
+    const { data: maps, error } = await supabaseClient.from("maps").select("id, name, url, allowed_roles, type, image_url");
+    if(error){ console.error(error); return []; }
+    return maps.filter(map => Array.isArray(map.allowed_roles) && map.allowed_roles.includes(userRole));
+}
+
+async function addMap(name,url,roles,type="سكنية"){
+    const { error } = await supabaseClient.from("maps").insert({ name, url, allowed_roles: roles, type, image_url: mapImages[type] });
+    if(error){ alert("خطأ في إضافة الخريطة: "+error.message); return false; }
+    return true;
+}
+
+async function deleteMap(mapId){
+    const { error } = await supabaseClient.from("maps").delete().eq('id', mapId);
+    if(error){ alert("خطأ في حذف الخريطة: "+error.message); return false; }
+    return true;
+}
+
+// ------------------ مراقبة التغييرات في الجلسة ------------------
+supabaseClient.auth.onAuthStateChange((event, session) => {
+    if(!session) localStorage.removeItem("sessionUser");
+});
+
+// ------------------ تصدير الدوال ------------------
+window.login = login;
+window.logout = logout;
+window.protectPage = protectPage;
+window.checkSessionOnly = checkSessionOnly;
+window.getVisitStats = getVisitStats;
+window.getUsers = getUsers;
+window.loadUsersList = getUsers;
+window.deleteUser = deleteUser;
+window.addUser = addUser;
+window.updateUserRole = updateUserRole;
+window.updateUserPassword = updateUserPassword;
+window.getAccessibleMaps = getAccessibleMaps;
+window.addMap = addMap;
+window.deleteMap = deleteMap;
+window.mapImages = mapImages;
+
