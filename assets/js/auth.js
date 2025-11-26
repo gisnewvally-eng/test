@@ -58,7 +58,7 @@ async function trackVisit(userId){
 }
 
 async function getVisitStats(){
-    const { data: visits, error } = await supabaseClient.from('visits').select('user_id, profiles(role)');
+    const { data: visits, error } = await supabaseClient.from('visits').select('user_id, profiles(username)');
     if(error){ console.error(error); return null; }
     const stats = {};
     visits.forEach(v=>{
@@ -281,5 +281,6 @@ window.trackVisit = trackVisit;
 window.getVisitStats = getVisitStats;
 // تصدير الدالة للاستخدام في index.html
 window.checkSessionOnly = checkSessionOnly;
+
 
 
