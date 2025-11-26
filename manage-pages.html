@@ -197,27 +197,60 @@ async function loadMapsGrid(){
 addMapBtn.onclick = ()=>addMapModal.style.display="flex";
 cancelMapBtn.onclick = ()=>addMapModal.style.display="none";
 
-saveMapBtn.onclick = async ()=>{
+saveMapBtn.onclick = async () => {
   const name = document.getElementById("newMapName").value.trim();
   const url = document.getElementById("newMapURL").value.trim();
   const type = document.getElementById("newMapType").value;
 
-  if(!name){ alert("ادخل اسم الخريطة"); return; }
-  if(!type || !mapImages[type]){ alert("اختر نوع صحيح"); return; }
+  if (!name) { alert("ادخل اسم الخريطة"); return; }
+  if (!type || !mapImages[type]) { alert("اختر نوع صحيح"); return; }
 
+  // جمع الأدوار المحددة
   const roles = Array.from(addMapModal.querySelectorAll('input[type="checkbox"]'))
                      .filter(cb => cb.checked)
                      .map(cb => cb.value);
 
-  if(roles.length === 0){ alert("اختر على الأقل دور واحد"); return; }
+  if (roles.length === 0) { alert("اختر على الأقل دور واحد"); return; }
 
-  await supabaseClient.from('maps').insert({
-    name,
-    url,
-    type,
-    allowed_roles: roles,
-    image_url: mapImages[type]
-  });
+  // حماية المستخدم من الحفظ بدون صلاحية
+  const profile = JSON.parse(localStorage.getItem("sessionUser"));
+  if (!profile || profile.role !== "admin") {
+    alert("ليس لديك صلاحية إضافة الخرائط");
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from('maps')
+      .insert({
+        name,
+        url,
+        type,
+        allowed_roles: roles,
+        image_url: mapImages[type]
+      })
+      .select()
+      .single(); // للحصول على السطر المضاف
+
+    if (error) throw error;
+
+    alert("تم إضافة الخريطة بنجاح");
+
+    // إعادة تعيين حقول النموذج
+    addMapModal.style.display = "none";
+    document.getElementById("newMapName").value = "";
+    document.getElementById("newMapURL").value = "";
+    document.getElementById("newMapType").value = "سكنية";
+    addMapModal.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = cb.value === "admin");
+
+    // تحديث واجهة الخرائط
+    loadMapsGrid();
+
+  } catch (err) {
+    console.error(err);
+    alert("حدث خطأ أثناء إضافة الخريطة: " + err.message);
+  }
+};
 
   addMapModal.style.display="none";
   document.getElementById("newMapName").value="";
@@ -238,4 +271,5 @@ window.onload = async ()=>{
 
 </body>
 </html>
+
 
