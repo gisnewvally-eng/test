@@ -64,6 +64,11 @@ main { padding:20px; }
       <option value="تجارية">تجارية</option>
       <option value="خدمية">خدمية</option>
     </select>
+    <div class="roles">
+      <label><input type="checkbox" value="admin"> Admin</label>
+      <label><input type="checkbox" value="user"> User</label>
+      <label><input type="checkbox" value="guest"> Guest</label>
+    </div>
     <div style="display:flex; gap:10px;">
       <button id="saveMapBtn">حفظ</button>
       <button id="cancelMapBtn" style="background:#ccc;color:#000;">إلغاء</button>
@@ -86,17 +91,14 @@ function createMapCard(map){
   img.src = map.image_url || mapImages[map.type] || mapImages["سكنية"];
   card.appendChild(img);
 
-  // الاسم
   const nameInput = document.createElement("input");
   nameInput.type="text"; nameInput.value=map.name||""; nameInput.placeholder="اسم الخريطة";
   card.appendChild(nameInput);
 
-  // الرابط
   const urlInput = document.createElement("input");
   urlInput.type="text"; urlInput.value=map.url||""; urlInput.placeholder="رابط الخريطة";
   card.appendChild(urlInput);
 
-  // النوع
   const typeSelect = document.createElement("select");
   ["سكنية","صناعية","تجارية","خدمية"].forEach(t=>{
     const opt = document.createElement("option");
@@ -106,11 +108,11 @@ function createMapCard(map){
   });
   card.appendChild(typeSelect);
 
-  // الأدوار
   const roleDiv = document.createElement("div"); roleDiv.className="roles";
   ["admin","user","guest"].forEach(role=>{
     const label = document.createElement("label");
     const checkbox = document.createElement("input"); checkbox.type="checkbox";
+    checkbox.value = role;
     checkbox.checked = map.allowed_roles?.includes(role)||false;
     label.appendChild(checkbox);
     label.appendChild(document.createTextNode(" "+role));
@@ -118,7 +120,6 @@ function createMapCard(map){
   });
   card.appendChild(roleDiv);
 
-  // زر حفظ التغييرات
   const saveBtn = document.createElement("button");
   saveBtn.textContent="حفظ التغييرات";
   saveBtn.onclick = async ()=>{
@@ -126,7 +127,7 @@ function createMapCard(map){
     const newURL = urlInput.value.trim();
     const newType = typeSelect.value;
     const newRoles = Array.from(roleDiv.querySelectorAll('input[type="checkbox"]'))
-      .filter(cb=>cb.checked).map(cb=>cb.parentElement.textContent.trim());
+      .filter(cb=>cb.checked).map(cb=>cb.value);
     
     await supabaseClient.from('maps').update({
       name:newName,
@@ -141,7 +142,6 @@ function createMapCard(map){
   };
   card.appendChild(saveBtn);
 
-  // حذف
   const delBtn = document.createElement("button");
   delBtn.textContent="حذف الخريطة";
   delBtn.style.background="#e74c3c";
@@ -158,14 +158,22 @@ function createMapCard(map){
 
 async function loadMapsGrid(){
   mapsGrid.innerHTML = "جاري تحميل الخرائط...";
+  const profile = await protectPage();
+  if(!profile) return;
+
   const { data: maps, error } = await supabaseClient.from('maps').select("*");
   if(error){ mapsGrid.innerHTML = "حدث خطأ"; console.error(error); return; }
+
+  // تصفية الخرائط حسب allowed_roles
+  const accessibleMaps = maps.filter(map=>Array.isArray(map.allowed_roles) && map.allowed_roles.includes(profile.role));
+
   mapsGrid.innerHTML = "";
-  maps.forEach(m=>mapsGrid.appendChild(createMapCard(m)));
+  accessibleMaps.forEach(m=>mapsGrid.appendChild(createMapCard(m)));
 }
 
 addMapBtn.onclick = ()=>addMapModal.style.display="flex";
 cancelMapBtn.onclick = ()=>addMapModal.style.display="none";
+
 saveMapBtn.onclick = async ()=>{
   const name = document.getElementById("newMapName").value.trim();
   const url = document.getElementById("newMapURL").value.trim();
@@ -174,7 +182,15 @@ saveMapBtn.onclick = async ()=>{
   if(!name){ alert("ادخل اسم الخريطة"); return; }
   if(!type || !mapImages[type]){ alert("اختر نوع صحيح"); return; }
 
-  await supabaseClient.from('maps').insert({name,url,allowed_roles:["admin"],type,image_url:mapImages[type]});
+  const roleCheckboxes = addMapModal.querySelectorAll('.roles input[type="checkbox"]');
+  const selectedRoles = Array.from(roleCheckboxes).filter(cb=>cb.checked).map(cb=>cb.value);
+
+  if(selectedRoles.length===0){ alert("اختر دوراً واحداً على الأقل"); return; }
+
+  await supabaseClient.from('maps').insert({
+    name, url, type, image_url: mapImages[type], allowed_roles: selectedRoles
+  });
+
   addMapModal.style.display="none";
   document.getElementById("newMapName").value="";
   document.getElementById("newMapURL").value="";
@@ -183,11 +199,7 @@ saveMapBtn.onclick = async ()=>{
 };
 
 window.onload = async ()=>{
-  const profile = await protectPage();
-  if(!profile) return;
-  if(profile.role!=='admin'){ alert("غير مسموح بالدخول"); logout(); return; }
-
-  loadMapsGrid();
+  await loadMapsGrid();
 };
 </script>
 
