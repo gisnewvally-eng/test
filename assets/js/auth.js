@@ -51,12 +51,14 @@ async function checkSessionOnly() {
     };
 }
 // ------------------ تتبع الزيارات ------------------
+// ------------------ تتبع الزيارات ------------------
 async function trackVisit(userId){
     if(!userId) return;
     const { error } = await supabaseClient.from('visits').insert({ user_id: userId });
     if(error) console.error("Failed to track visit:", error);
 }
 
+// ------------------ جلب إحصائيات الزيارات ------------------
 async function getVisitStats(){
     // جلب كل الزيارات وربطها مع بيانات المستخدمين
     const { data: visits, error } = await supabaseClient
@@ -66,13 +68,62 @@ async function getVisitStats(){
     if(error){ console.error(error); return null; }
 
     const stats = {};
-
     visits.forEach(v => {
-        const name = v.profiles ? v.profiles.name : 'مجهول';
+        const name = v.profiles && v.profiles.name ? v.profiles.name : 'مجهول';
         stats[name] = (stats[name] || 0) + 1; // عد الزيارات لكل مستخدم
     });
 
     return stats;
+}
+
+// ------------------ تحديث الشارت ------------------
+async function updateVisitsChart(){
+    const statsData = await getVisitStats();
+    if(!statsData) return;
+
+    const labels = Object.keys(statsData);
+    const data = Object.values(statsData);
+
+    // تمييز المستخدم الحالي بلون مختلف
+    const currentUser = JSON.parse(localStorage.getItem("sessionUser"));
+    const backgroundColors = labels.map(name => 
+        currentUser && currentUser.name === name ? '#26d0ce' : '#004b8d'
+    );
+
+    const ctx = document.getElementById('visitsChart').getContext('2d');
+
+    if(window.visitsChart) window.visitsChart.destroy(); // مسح الشارت القديم
+
+    window.visitsChart = new Chart(ctx,{
+        type:'bar',
+        data:{
+            labels,
+            datasets:[{
+                label:'عدد الزيارات',
+                data,
+                backgroundColor: backgroundColors
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return `${context.dataset.label}: ${context.parsed.y}`;
+                        }
+                    }
+                }
+            },
+            scales:{
+                y:{
+                    beginAtZero:true,
+                    title: { display:true, text:'عدد الزيارات' }
+                }
+            }
+        }
+    });
 }
 
 
@@ -288,6 +339,7 @@ window.trackVisit = trackVisit;
 window.getVisitStats = getVisitStats;
 // تصدير الدالة للاستخدام في index.html
 window.checkSessionOnly = checkSessionOnly;
+
 
 
 
