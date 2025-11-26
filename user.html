@@ -9,9 +9,6 @@
 <script src="assets/js/auth.js"></script>
 
 <style>
-/* ---------------------------------
-   كود CSS المشترك بين الصفحات
-   --------------------------------- */
 body { margin:0; font-family:sans-serif; direction:rtl; }
 header { background: linear-gradient(90deg,#00F260,#0575E6); color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; position: fixed; top:0; left:0; right:0; z-index:1001; }
 header span { font-weight:bold; }
@@ -22,11 +19,20 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
 .sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; padding: 5px; }
 .sidebar a:hover { background:#34495e; padding-left:10px; }
 .main-content { margin-top:70px; margin-left:240px; padding:30px; padding-bottom:60px; }
+.map-card { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 10px; 
+    padding: 10px; 
+    background: #f1f1f1; 
+    border-radius: 6px; 
+}
+.map-card a { text-decoration:none; color:#1a2980; font-weight:bold; }
+.map-card button { padding:5px 10px; border:none; border-radius:5px; cursor:pointer; color:#fff; }
 
-/* Footer */
 footer { position: fixed; bottom:0; left:0; right:0; background: linear-gradient(90deg,#00F260,#0575E6); color:#fff; display:flex; flex-direction: column; align-items:center; justify-content:center; text-align:center; font-weight:700; padding:6px 0; z-index:1000; }
 footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
-
 </style>
 </head>
 <body>
@@ -65,7 +71,7 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
   
   <h3>الخرائط المتاحة لدورك</h3>
   <div id="availableMapsContent">
-    يرجى اختيار خريطة من القائمة الجانبية (Sidebar) لفتحها.
+    جاري تحميل الخرائط...
   </div>
 </div>
 
@@ -75,70 +81,99 @@ footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
 </footer>
 
 <script>
-    // ------------------ 1. حماية الصفحة عند التحميل ------------------
-    window.onload = async function() {
-        
-        // 🛡️ حماية الصفحة وجلب بيانات المستخدم
-        const userProfile = await protectPage(); 
-        
-        if (!userProfile) return; 
+window.onload = async function() {
+    const userProfile = await protectPage(); 
+    if (!userProfile) return; 
 
-        // ⚠️ التحقق من الدور (يسمح لـ 'user' و 'admin' بالدخول)
-        if (userProfile.role !== 'user' && userProfile.role !== 'admin') {
-            alert('ليس لديك صلاحية الوصول لهذه الصفحة.');
-            logout(); 
-            return;
-        }
+    if (userProfile.role !== 'user' && userProfile.role !== 'admin') {
+        alert('ليس لديك صلاحية الوصول لهذه الصفحة.');
+        logout(); 
+        return;
+    }
 
-        // ------------------ 2. عرض البيانات الأساسية ------------------
-        document.getElementById("userName").innerText = userProfile.email; 
-        document.getElementById("userRole").innerText = userProfile.role;
-        
-        // ------------------ 3. تفعيل وظائف الصفحة وSidebar ------------------
-        
-        // ملء قائمة الخرائط الديناميكية
-        await loadDynamicMaps(userProfile.role);
+    document.getElementById("userName").innerText = userProfile.email; 
+    document.getElementById("userRole").innerText = userProfile.role;
 
-        // Sidebar toggle
-        const toggleBtn = document.getElementById("toggleSidebar");
-        const sidebar = document.querySelector(".sidebar");
-        toggleBtn.onclick = function() {
-            sidebar.classList.toggle("hidden"); 
-            toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
-        };
-        
-        // ===== تسجيل الخروج =====
-        document.getElementById("logoutLink").onclick = (e)=>{ 
-            e.preventDefault(); 
-            logout(); 
-        };
+    await loadDynamicMaps(userProfile.role);
+    await renderUserMapsForGuestControl(userProfile.role);
+
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.querySelector(".sidebar");
+    toggleBtn.onclick = function() {
+        sidebar.classList.toggle("hidden"); 
+        toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
     };
 
-    /**
-     * 🗺️ جلب وعرض الخرائط المتاحة من Supabase
-     * @param {string} role - دور المستخدم الحالي
-     */
-    async function loadDynamicMaps(role) {
-        const mapsContainer = document.getElementById("dynamicMapsLinks");
-        
-        // استدعاء الدالة الجديدة من auth.js لجلب الخرائط المسموح بها للدور الحالي
-        const accessibleMaps = await getAccessibleMaps(role); 
+    document.getElementById("logoutLink").onclick = (e)=>{ 
+        e.preventDefault(); 
+        logout(); 
+    };
+};
 
-        if (accessibleMaps.length === 0) {
-            mapsContainer.innerHTML = "<p style='color: #ccc; font-size: 0.9em;'>لا توجد خرائط متاحة لدورك حالياً.</p>";
-            return;
-        }
-
-        mapsContainer.innerHTML = ""; // مسح رسالة التحميل
-
-        accessibleMaps.forEach(map => {
-            const a = document.createElement("a");
-            a.href = map.url;
-            a.textContent = map.name;
-            a.target = "_blank"; // لفتح الخريطة في تبويب جديد
-            mapsContainer.appendChild(a);
-        });
+async function loadDynamicMaps(role) {
+    const mapsContainer = document.getElementById("dynamicMapsLinks");
+    const accessibleMaps = await getAccessibleMaps(role); 
+    if(accessibleMaps.length === 0){
+        mapsContainer.innerHTML = "<p style='color: #ccc; font-size: 0.9em;'>لا توجد خرائط متاحة لدورك حالياً.</p>";
+        return;
     }
+    mapsContainer.innerHTML = "";
+    accessibleMaps.forEach(map => {
+        const a = document.createElement("a");
+        a.href = map.url;
+        a.textContent = map.name;
+        a.target = "_blank";
+        mapsContainer.appendChild(a);
+    });
+}
+
+async function renderUserMapsForGuestControl(userRole) {
+    const mapsContainer = document.getElementById("availableMapsContent");
+    mapsContainer.innerHTML = "جاري تحميل الخرائط...";
+    const accessibleMaps = await getAccessibleMaps(userRole); 
+    if(accessibleMaps.length === 0){
+        mapsContainer.innerHTML = "<p style='color: #888; font-style: italic;'>لا توجد خرائط متاحة.</p>";
+        return;
+    }
+    mapsContainer.innerHTML = "";
+    accessibleMaps.forEach(map => {
+        const div = document.createElement("div");
+        div.className = "map-card";
+
+        const link = document.createElement("a");
+        link.href = map.url;
+        link.target = "_blank";
+        link.textContent = map.name;
+
+        const guestToggle = document.createElement("button");
+        guestToggle.textContent = map.allowed_roles?.includes('guest') ? "مفعل للضيف" : "غير مفعل للضيف";
+        guestToggle.style.background = map.allowed_roles?.includes('guest') ? "#26d0ce" : "#ccc";
+
+        guestToggle.onclick = async () => {
+            let newRoles = map.allowed_roles || [];
+            if(newRoles.includes('guest')){
+                newRoles = newRoles.filter(r => r !== 'guest');
+            } else {
+                newRoles.push('guest');
+            }
+            const { error } = await supabaseClient.from('maps').update({
+                allowed_roles: newRoles
+            }).eq('id', map.id);
+            if(error){
+                alert("حدث خطأ أثناء تحديث الصلاحية: " + error.message);
+                console.error(error);
+                return;
+            }
+            map.allowed_roles = newRoles;
+            guestToggle.textContent = newRoles.includes('guest') ? "مفعل للضيف" : "غير مفعل للضيف";
+            guestToggle.style.background = newRoles.includes('guest') ? "#26d0ce" : "#ccc";
+        };
+
+        div.appendChild(link);
+        div.appendChild(guestToggle);
+        mapsContainer.appendChild(div);
+    });
+}
 </script>
 </body>
 </html>
