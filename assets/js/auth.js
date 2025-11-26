@@ -58,13 +58,20 @@ async function trackVisit(userId){
 }
 
 async function getVisitStats(){
-    const { data: visits, error } = await supabaseClient.from('visits').select('user_id, profiles(username)');
+    // جلب كل الزيارات وربطها مع بيانات المستخدمين
+    const { data: visits, error } = await supabaseClient
+        .from('visits')
+        .select('user_id, profiles(name)');
+
     if(error){ console.error(error); return null; }
+
     const stats = {};
-    visits.forEach(v=>{
-        const role = v.profiles ? v.profiles.role : 'Unknown';
-        stats[role] = (stats[role] || 0) + 1;
+
+    visits.forEach(v => {
+        const name = v.profiles ? v.profiles.name : 'مجهول';
+        stats[name] = (stats[name] || 0) + 1; // عد الزيارات لكل مستخدم
     });
+
     return stats;
 }
 
@@ -281,6 +288,7 @@ window.trackVisit = trackVisit;
 window.getVisitStats = getVisitStats;
 // تصدير الدالة للاستخدام في index.html
 window.checkSessionOnly = checkSessionOnly;
+
 
 
 
