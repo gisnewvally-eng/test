@@ -141,7 +141,24 @@ async function protectPage() {
 // تصدير الدالة للاستخدام في dashboard.html
 window.protectPage = protectPage;
 
+// ------------------ إدارة الخرائط ------------------
+async function getAccessibleMaps(userRole){
+    const { data: maps, error } = await supabaseClient.from("maps").select("id, name, url, allowed_roles, type, image_url");
+    if(error){ console.error(error); return []; }
+    return maps.filter(map => Array.isArray(map.allowed_roles) && map.allowed_roles.includes(userRole));
+}
 
+async function addMap(name,url,roles,type="سكنية"){
+    const { error } = await supabaseClient.from("maps").insert({ name, url, allowed_roles: roles, type, image_url: mapImages[type] });
+    if(error){ alert("خطأ في إضافة الخريطة: "+error.message); return false; }
+    return true;
+}
+
+async function deleteMap(mapId){
+    const { error } = await supabaseClient.from("maps").delete().eq('id', mapId);
+    if(error){ alert("خطأ في حذف الخريطة: "+error.message); return false; }
+    return true;
+}
 // ------------------ إدارة المستخدمين عبر السيرفر ------------------
 
 // ✔️ get-users
@@ -243,6 +260,10 @@ window.updateUserRole = updateUserRole;
 window.updateUserPassword = updateUserPassword;
 
 window.mapImages = mapImages;
+
+window.getAccessibleMaps = getAccessibleMaps;
+window.addMap = addMap;
+window.deleteMap = deleteMap;
 
 
 
