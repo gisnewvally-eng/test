@@ -87,67 +87,96 @@ function createMapCard(map){
   const card = document.createElement("div");
   card.className = "map-card";
 
+  // صورة الخريطة
   const img = document.createElement("img");
   img.src = map.image_url || mapImages[map.type] || mapImages["سكنية"];
   card.appendChild(img);
 
+  // الاسم
   const nameInput = document.createElement("input");
-  nameInput.type="text"; nameInput.value=map.name||""; nameInput.placeholder="اسم الخريطة";
+  nameInput.type="text"; 
+  nameInput.value = map.name || ""; 
+  nameInput.placeholder = "اسم الخريطة";
   card.appendChild(nameInput);
 
+  // الرابط
   const urlInput = document.createElement("input");
-  urlInput.type="text"; urlInput.value=map.url||""; urlInput.placeholder="رابط الخريطة";
+  urlInput.type="text"; 
+  urlInput.value = map.url || ""; 
+  urlInput.placeholder = "رابط الخريطة";
   card.appendChild(urlInput);
 
+  // النوع
   const typeSelect = document.createElement("select");
   ["سكنية","صناعية","تجارية","خدمية"].forEach(t=>{
     const opt = document.createElement("option");
-    opt.value=t; opt.textContent=t;
-    if(map.type===t) opt.selected=true;
+    opt.value = t; 
+    opt.textContent = t;
+    if(map.type === t) opt.selected = true;
     typeSelect.appendChild(opt);
   });
   card.appendChild(typeSelect);
 
-  const roleDiv = document.createElement("div"); roleDiv.className="roles";
+  // الأدوار
+  const roleDiv = document.createElement("div"); 
+  roleDiv.className = "roles";
   ["admin","user","guest"].forEach(role=>{
     const label = document.createElement("label");
-    const checkbox = document.createElement("input"); checkbox.type="checkbox";
-    checkbox.value = role;
-    checkbox.checked = map.allowed_roles?.includes(role)||false;
+    const checkbox = document.createElement("input"); 
+    checkbox.type = "checkbox";
+    checkbox.value = role; // ← مهم
+    checkbox.checked = map.allowed_roles?.includes(role) || false;
     label.appendChild(checkbox);
-    label.appendChild(document.createTextNode(" "+role));
+    label.appendChild(document.createTextNode(" " + role));
     roleDiv.appendChild(label);
   });
   card.appendChild(roleDiv);
 
+  // زر حفظ التغييرات
   const saveBtn = document.createElement("button");
-  saveBtn.textContent="حفظ التغييرات";
+  saveBtn.textContent = "حفظ التغييرات";
   saveBtn.onclick = async ()=>{
     const newName = nameInput.value.trim();
     const newURL = urlInput.value.trim();
     const newType = typeSelect.value;
+
+    // قراءة الأدوار المحددة بشكل صحيح
     const newRoles = Array.from(roleDiv.querySelectorAll('input[type="checkbox"]'))
-      .filter(cb=>cb.checked).map(cb=>cb.value);
-    
-    await supabaseClient.from('maps').update({
-      name:newName,
-      url:newURL,
-      type:newType,
-      allowed_roles:newRoles,
+                          .filter(cb => cb.checked)
+                          .map(cb => cb.value);
+
+    if(newRoles.length === 0){
+      alert("اختر على الأقل دور واحد");
+      return;
+    }
+
+    // تحديث البيانات في Supabase
+    const { error } = await supabaseClient.from('maps').update({
+      name: newName,
+      url: newURL,
+      type: newType,
+      allowed_roles: newRoles,
       image_url: mapImages[newType]
     }).eq('id', map.id);
-    
-    img.src = mapImages[newType];
+
+    if(error){
+      alert("حدث خطأ أثناء الحفظ: " + error.message);
+      console.error(error);
+      return;
+    }
+
+    img.src = mapImages[newType]; // تحديث الصورة
     alert("تم حفظ التغييرات بنجاح");
   };
   card.appendChild(saveBtn);
 
+  // زر حذف
   const delBtn = document.createElement("button");
-  delBtn.textContent="حذف الخريطة";
-  delBtn.style.background="#e74c3c";
+  delBtn.textContent = "حذف الخريطة";
+  delBtn.style.background = "#e74c3c";
   delBtn.onclick = async ()=>{
     if(confirm("هل تريد حذف هذه الخريطة نهائياً؟")){
-      await supabaseClient.from('maps').delete().eq('id',map.id);
+      await supabaseClient.from('maps').delete().eq('id', map.id);
       loadMapsGrid();
     }
   };
@@ -155,6 +184,7 @@ function createMapCard(map){
 
   return card;
 }
+
 
 async function loadMapsGrid(){
   mapsGrid.innerHTML = "جاري تحميل الخرائط...";
@@ -208,3 +238,4 @@ window.onload = async ()=>{
 
 </body>
 </html>
+
