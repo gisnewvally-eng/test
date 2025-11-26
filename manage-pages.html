@@ -65,7 +65,7 @@ main { padding:20px; }
       <option value="خدمية">خدمية</option>
     </select>
     <div class="roles">
-      <label><input type="checkbox" value="admin"> Admin</label>
+      <label><input type="checkbox" value="admin" checked> Admin</label>
       <label><input type="checkbox" value="user"> User</label>
       <label><input type="checkbox" value="guest"> Guest</label>
     </div>
@@ -133,8 +133,8 @@ function createMapCard(map){
       name:newName,
       url:newURL,
       type:newType,
-      image_url: mapImages[newType],
-      allowed_roles: newRoles
+      allowed_roles:newRoles,
+      image_url: mapImages[newType]
     }).eq('id', map.id);
     
     img.src = mapImages[newType];
@@ -158,17 +158,10 @@ function createMapCard(map){
 
 async function loadMapsGrid(){
   mapsGrid.innerHTML = "جاري تحميل الخرائط...";
-  const profile = await protectPage();
-  if(!profile) return;
-
   const { data: maps, error } = await supabaseClient.from('maps').select("*");
   if(error){ mapsGrid.innerHTML = "حدث خطأ"; console.error(error); return; }
-
-  // تصفية الخرائط حسب allowed_roles
-  const accessibleMaps = maps.filter(map=>Array.isArray(map.allowed_roles) && map.allowed_roles.includes(profile.role));
-
   mapsGrid.innerHTML = "";
-  accessibleMaps.forEach(m=>mapsGrid.appendChild(createMapCard(m)));
+  maps.forEach(m=>mapsGrid.appendChild(createMapCard(m)));
 }
 
 addMapBtn.onclick = ()=>addMapModal.style.display="flex";
@@ -182,24 +175,34 @@ saveMapBtn.onclick = async ()=>{
   if(!name){ alert("ادخل اسم الخريطة"); return; }
   if(!type || !mapImages[type]){ alert("اختر نوع صحيح"); return; }
 
-  const roleCheckboxes = addMapModal.querySelectorAll('.roles input[type="checkbox"]');
-  const selectedRoles = Array.from(roleCheckboxes).filter(cb=>cb.checked).map(cb=>cb.value);
+  const roles = Array.from(addMapModal.querySelectorAll('input[type="checkbox"]'))
+                     .filter(cb => cb.checked)
+                     .map(cb => cb.value);
 
-  if(selectedRoles.length===0){ alert("اختر دوراً واحداً على الأقل"); return; }
+  if(roles.length === 0){ alert("اختر على الأقل دور واحد"); return; }
 
   await supabaseClient.from('maps').insert({
-    name, url, type, image_url: mapImages[type], allowed_roles: selectedRoles
+    name,
+    url,
+    type,
+    allowed_roles: roles,
+    image_url: mapImages[type]
   });
 
   addMapModal.style.display="none";
   document.getElementById("newMapName").value="";
   document.getElementById("newMapURL").value="";
   document.getElementById("newMapType").value="سكنية";
+
   loadMapsGrid();
 };
 
 window.onload = async ()=>{
-  await loadMapsGrid();
+  const profile = await protectPage();
+  if(!profile) return;
+  if(profile.role!=='admin'){ alert("غير مسموح بالدخول"); logout(); return; }
+
+  loadMapsGrid();
 };
 </script>
 
