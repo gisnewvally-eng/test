@@ -87,11 +87,14 @@ header { background: linear-gradient(90deg, #1a2980, #26d0ce); color:#fff; paddi
     /**
      * 🗺️ جلب وعرض الخرائط المتاحة من Supabase لدور 'guest'
      */
-    async function renderGuestMaps(){
+   async function renderGuestMaps(){
     const mapsContainer = document.getElementById("guestMaps");
     
-    // جلب الخرائط المسموح بها لدور 'guest'
-    const accessibleMaps = await getAccessibleMaps('guest'); 
+    // جلب كل الخرائط
+    const allMaps = await getAccessibleMaps('guest'); // أو جلب كل الخرائط بدون تصفية حسب الدور
+
+    // تصفية الخرائط التي يسمح للضيف بالوصول إليها
+    const accessibleMaps = allMaps.filter(map => map.allowed_roles?.includes('guest'));
 
     if (accessibleMaps.length === 0) {
         mapsContainer.innerHTML = "<p style='color: #888; font-style: italic;'>لا توجد خرائط متاحة لدورك حالياً. يرجى التواصل مع المسؤول.</p>";
@@ -118,7 +121,9 @@ header { background: linear-gradient(90deg, #1a2980, #26d0ce); color:#fff; paddi
     });
 }
 
+
 </script>
 </body>
 </html>
+
 
