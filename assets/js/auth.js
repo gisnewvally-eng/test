@@ -100,13 +100,47 @@ async function logout() {
 }
 
 // ------------------ حماية الصفحات ------------------
+// ======================
+// حماية الصفحات
+// ======================
 async function protectPage() {
-  const { data } = await supabaseClient.auth.getUser();
-  if (!data.user) {
-    window.location.href = "index.html";
-    return;
-  }
+    // جلب المستخدم الحالي من Supabase
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    
+    if (!user) {
+        window.location.href = "index.html";
+        return null;
+    }
+
+    // جلب البروفايل من جدول profiles
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("id, role, username, name, email")
+        .eq("id", user.id)
+        .single();
+
+    if (error || !profile) {
+        window.location.href = "index.html";
+        return null;
+    }
+
+    // تتبع الزيارة
+    try {
+        const { error: visitError } = await supabaseClient
+            .from('visits')
+            .insert({ user_id: user.id });
+        if (visitError) console.error("Visit tracking failed:", visitError);
+    } catch(e) {
+        console.error("Unexpected error tracking visit:", e);
+    }
+
+    // إعادة البروفايل للاستخدام في صفحات الداشبورد
+    return profile;
 }
+
+// تصدير الدالة للاستخدام في dashboard.html
+window.protectPage = protectPage;
+
 
 // ------------------ إدارة المستخدمين عبر السيرفر ------------------
 
@@ -209,6 +243,7 @@ window.updateUserRole = updateUserRole;
 window.updateUserPassword = updateUserPassword;
 
 window.mapImages = mapImages;
+
 
 
 
