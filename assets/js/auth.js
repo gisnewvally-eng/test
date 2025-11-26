@@ -18,6 +18,32 @@ const mapImages = {
   "خدمية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/services.png",
   "logo": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/logo.png"
 };
+// ======================
+// التحقق من الجلسة بدون إعادة توجيه
+// تُستخدم في index.html فقط
+// ======================
+async function checkSessionOnly() {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user) return null;
+
+    const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("role, username, name, email")
+        .eq("id", user.id)
+        .single();
+
+    if(error || !profile) return null;
+
+    // تتبع الزيارة
+    if(user.id) {
+        supabaseClient.from('visits').insert({ user_id: user.id }).catch(e => console.error(e));
+    }
+
+    return { ...profile, email: profile.email, name: profile.name || profile.username || user.email.split('@')[0] };
+}
+
+// تصدير الدالة للاستخدام في index.html
+window.checkSessionOnly = checkSessionOnly;
 
 // ------------------ تسجيل الدخول ------------------
 async function login(email, password) {
@@ -35,14 +61,7 @@ async function login(email, password) {
     alert("البريد أو كلمة المرور خاطئة");
     return;
   }
-// ======================
-// التحقق من الجلسة بدون إعادة توجيه
-// تستخدمها الصفحة الرئيسية index فقط
-// ======================
-async function checkSessionOnly() {
-    const { data } = await supabase.auth.getSession();
-    return data.session ? true : false;
-}
+
 
   const user = session.user;
 
@@ -181,4 +200,5 @@ window.updateUserRole = updateUserRole;
 window.updateUserPassword = updateUserPassword;
 
 window.mapImages = mapImages;
+
 
