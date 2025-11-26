@@ -24,7 +24,7 @@ const mapImages = {
 // ======================
 async function checkSessionOnly() {
     const { data: { user } } = await supabaseClient.auth.getUser();
-    if(!user) return null;
+    if (!user) return null;
 
     const { data: profile, error } = await supabaseClient
         .from("profiles")
@@ -32,14 +32,23 @@ async function checkSessionOnly() {
         .eq("id", user.id)
         .single();
 
-    if(error || !profile) return null;
+    if (error || !profile) return null;
 
-    // تتبع الزيارة
-    if(user.id) {
-        supabaseClient.from('visits').insert({ user_id: user.id }).catch(e => console.error(e));
+    // تتبع الزيارة بشكل صحيح
+    try {
+        const { error: visitError } = await supabaseClient
+            .from('visits')
+            .insert({ user_id: user.id });
+        if (visitError) console.error("Visit tracking failed:", visitError);
+    } catch(e) {
+        console.error("Unexpected error tracking visit:", e);
     }
 
-    return { ...profile, email: profile.email, name: profile.name || profile.username || user.email.split('@')[0] };
+    return { 
+        ...profile, 
+        email: profile.email, 
+        name: profile.name || profile.username || user.email.split('@')[0] 
+    };
 }
 
 // تصدير الدالة للاستخدام في index.html
@@ -200,5 +209,6 @@ window.updateUserRole = updateUserRole;
 window.updateUserPassword = updateUserPassword;
 
 window.mapImages = mapImages;
+
 
 
