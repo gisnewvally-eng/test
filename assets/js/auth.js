@@ -50,9 +50,24 @@ async function checkSessionOnly() {
         name: profile.name || profile.username || user.email.split('@')[0] 
     };
 }
+// ------------------ تتبع الزيارات ------------------
+async function trackVisit(userId){
+    if(!userId) return;
+    const { error } = await supabaseClient.from('visits').insert({ user_id: userId });
+    if(error) console.error("Failed to track visit:", error);
+}
 
-// تصدير الدالة للاستخدام في index.html
-window.checkSessionOnly = checkSessionOnly;
+async function getVisitStats(){
+    const { data: visits, error } = await supabaseClient.from('visits').select('user_id, profiles(role)');
+    if(error){ console.error(error); return null; }
+    const stats = {};
+    visits.forEach(v=>{
+        const role = v.profiles ? v.profiles.role : 'Unknown';
+        stats[role] = (stats[role] || 0) + 1;
+    });
+    return stats;
+}
+
 
 // ------------------ تسجيل الدخول ------------------
 async function login(email, password) {
@@ -252,19 +267,19 @@ async function updateUserPassword(userId, password) {
 window.login = login;
 window.logout = logout;
 window.protectPage = protectPage;
-
 window.getUsers = getUsers;
 window.addUser = addUser;
 window.deleteUser = deleteUser;
 window.updateUserRole = updateUserRole;
 window.updateUserPassword = updateUserPassword;
-
 window.mapImages = mapImages;
-
 window.getAccessibleMaps = getAccessibleMaps;
 window.addMap = addMap;
 window.deleteMap = deleteMap;
-
-
+// تصدير الدوال للاستخدام في dashboard.html
+window.trackVisit = trackVisit;
+window.getVisitStats = getVisitStats;
+// تصدير الدالة للاستخدام في index.html
+window.checkSessionOnly = checkSessionOnly;
 
 
