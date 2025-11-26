@@ -35,6 +35,14 @@ async function login(email, password) {
     alert("البريد أو كلمة المرور خاطئة");
     return;
   }
+// ======================
+// التحقق من الجلسة بدون إعادة توجيه
+// تستخدمها الصفحة الرئيسية index فقط
+// ======================
+async function checkSessionOnly() {
+    const { data } = await supabase.auth.getSession();
+    return data.session ? true : false;
+}
 
   const user = session.user;
 
@@ -173,3 +181,4 @@ window.updateUserRole = updateUserRole;
 window.updateUserPassword = updateUserPassword;
 
 window.mapImages = mapImages;
+
