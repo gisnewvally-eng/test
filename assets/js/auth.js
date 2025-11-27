@@ -6,7 +6,7 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 2️⃣ رابط السيرفر الحقيقي
+// 2️⃣ رابط السيرفر الحقيقي لإدارة المستخدمين
 const SERVER_API = "https://supabase-admin-api-xi.vercel.app/api/users";
 
 // ------------------ روابط الصور ------------------
@@ -17,9 +17,9 @@ const mapImages = {
   "خدمية": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/services.png",
   "logo": "https://mvxjqtvmnibhxtfuufky.supabase.co/storage/v1/object/public/map-type-images/images/logo.png"
 };
+
 // ======================
-// التحقق من الجلسة بدون إعادة توجيه
-// تُستخدم في index.html فقط
+// التحقق من الجلسة بدون إعادة توجيه (index.html فقط)
 // ======================
 async function checkSessionOnly() {
     const { data: { user } } = await supabaseClient.auth.getUser();
@@ -33,7 +33,6 @@ async function checkSessionOnly() {
 
     if (error || !profile) return null;
 
-    // تتبع الزيارة بشكل صحيح
     try {
         const { error: visitError } = await supabaseClient
             .from('visits')
@@ -49,7 +48,7 @@ async function checkSessionOnly() {
         name: profile.name || profile.username || user.email.split('@')[0] 
     };
 }
-// ------------------ تتبع الزيارات ------------------
+
 // ------------------ تتبع الزيارات ------------------
 async function trackVisit(userId){
     if(!userId) return;
@@ -59,7 +58,6 @@ async function trackVisit(userId){
 
 // ------------------ جلب إحصائيات الزيارات ------------------
 async function getVisitStats(){
-    // جلب كل الزيارات وربطها مع بيانات المستخدمين
     const { data: visits, error } = await supabaseClient
         .from('visits')
         .select('user_id, profiles(name)');
@@ -69,7 +67,7 @@ async function getVisitStats(){
     const stats = {};
     visits.forEach(v => {
         const name = v.profiles && v.profiles.name ? v.profiles.name : 'مجهول';
-        stats[name] = (stats[name] || 0) + 1; // عد الزيارات لكل مستخدم
+        stats[name] = (stats[name] || 0) + 1;
     });
 
     return stats;
@@ -83,7 +81,6 @@ async function updateVisitsChart(){
     const labels = Object.keys(statsData);
     const data = Object.values(statsData);
 
-    // تمييز المستخدم الحالي بلون مختلف
     const currentUser = JSON.parse(localStorage.getItem("sessionUser"));
     const backgroundColors = labels.map(name => 
         currentUser && currentUser.name === name ? '#26d0ce' : '#004b8d'
@@ -91,7 +88,7 @@ async function updateVisitsChart(){
 
     const ctx = document.getElementById('visitsChart').getContext('2d');
 
-    if(window.visitsChart) window.visitsChart.destroy(); // مسح الشارت القديم
+    if(window.visitsChart) window.visitsChart.destroy();
 
     window.visitsChart = new Chart(ctx,{
         type:'bar',
@@ -125,7 +122,6 @@ async function updateVisitsChart(){
     });
 }
 
-
 // ------------------ تسجيل الدخول ------------------
 async function login(email, password) {
   if (!email || !password) {
@@ -133,16 +129,12 @@ async function login(email, password) {
     return;
   }
 
-  const { data: session, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password
-  });
+  const { data: session, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
   if (error) {
     alert("البريد أو كلمة المرور خاطئة");
     return;
   }
-
 
   const user = session.user;
 
@@ -172,11 +164,7 @@ async function logout() {
 }
 
 // ------------------ حماية الصفحات ------------------
-// ======================
-// حماية الصفحات
-// ======================
 async function protectPage() {
-    // جلب المستخدم الحالي من Supabase
     const { data: { user } } = await supabaseClient.auth.getUser();
     
     if (!user) {
@@ -184,7 +172,6 @@ async function protectPage() {
         return null;
     }
 
-    // جلب البروفايل من جدول profiles
     const { data: profile, error } = await supabaseClient
         .from("profiles")
         .select("id, role, username, name, email")
@@ -196,7 +183,6 @@ async function protectPage() {
         return null;
     }
 
-    // تتبع الزيارة
     try {
         const { error: visitError } = await supabaseClient
             .from('visits')
@@ -206,22 +192,22 @@ async function protectPage() {
         console.error("Unexpected error tracking visit:", e);
     }
 
-    // إعادة البروفايل للاستخدام في صفحات الداشبورد
     return profile;
 }
 
-// تصدير الدالة للاستخدام في dashboard.html
-window.protectPage = protectPage;
-
 // ------------------ إدارة الخرائط ------------------
 async function getAccessibleMaps(userRole){
-    const { data: maps, error } = await supabaseClient.from("maps").select("id, name, url, allowed_roles, type, image_url");
+    const { data: maps, error } = await supabaseClient
+        .from("maps")
+        .select("id, name, url, allowed_roles, type, image_url");
     if(error){ console.error(error); return []; }
     return maps.filter(map => Array.isArray(map.allowed_roles) && map.allowed_roles.includes(userRole));
 }
 
 async function addMap(name,url,roles,type="سكنية"){
-    const { error } = await supabaseClient.from("maps").insert({ name, url, allowed_roles: roles, type, image_url: mapImages[type] });
+    const { error } = await supabaseClient
+        .from("maps")
+        .insert({ name, url, allowed_roles: roles, type, image_url: mapImages[type] });
     if(error){ alert("خطأ في إضافة الخريطة: "+error.message); return false; }
     return true;
 }
@@ -231,9 +217,10 @@ async function deleteMap(mapId){
     if(error){ alert("خطأ في حذف الخريطة: "+error.message); return false; }
     return true;
 }
+
 // ------------------ إدارة المستخدمين عبر السيرفر ------------------
 
-// ✔️ get-users
+// get-users
 async function getUsers() {
   try {
     const res = await fetch(`${SERVER_API}?action=get-users`);
@@ -245,7 +232,7 @@ async function getUsers() {
   }
 }
 
-// ✔️ add-user
+// add-user
 async function addUser(name, email, password, role) {
   try {
     const res = await fetch(`${SERVER_API}?action=add-user`, {
@@ -253,10 +240,8 @@ async function addUser(name, email, password, role) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password, role })
     });
-
     const data = await res.json();
     return data.success || false;
-
   } catch (err) {
     console.error(err);
     alert("خطأ في الاتصال بالسيرفر");
@@ -264,7 +249,7 @@ async function addUser(name, email, password, role) {
   }
 }
 
-// ✔️ delete-user
+// delete-user
 async function deleteUser(userId) {
   try {
     const res = await fetch(`${SERVER_API}?action=delete-user`, {
@@ -272,10 +257,8 @@ async function deleteUser(userId) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId })
     });
-
     const data = await res.json();
     return data.success || false;
-
   } catch (err) {
     console.error(err);
     alert("خطأ في الاتصال بالسيرفر");
@@ -283,7 +266,7 @@ async function deleteUser(userId) {
   }
 }
 
-// ✔️ update-user
+// update-user
 async function updateUserRole(userId, role) {
   try {
     const res = await fetch(`${SERVER_API}?action=update-user`, {
@@ -291,10 +274,8 @@ async function updateUserRole(userId, role) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, role })
     });
-
     const data = await res.json();
     return data.success || false;
-
   } catch (err) {
     console.error(err);
     alert("خطأ في الاتصال بالسيرفر");
@@ -309,10 +290,8 @@ async function updateUserPassword(userId, password) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ userId, password })
     });
-
     const data = await res.json();
     return data.success || false;
-
   } catch (err) {
     console.error(err);
     alert("خطأ في الاتصال بالسيرفر");
@@ -320,7 +299,7 @@ async function updateUserPassword(userId, password) {
   }
 }
 
-// ----------------------------------------------------
+// ------------------ تصدير الدوال للاستخدام في الصفحات ------------------
 window.login = login;
 window.logout = logout;
 window.protectPage = protectPage;
@@ -333,14 +312,6 @@ window.mapImages = mapImages;
 window.getAccessibleMaps = getAccessibleMaps;
 window.addMap = addMap;
 window.deleteMap = deleteMap;
-// تصدير الدوال للاستخدام في dashboard.html
 window.trackVisit = trackVisit;
 window.getVisitStats = getVisitStats;
-// تصدير الدالة للاستخدام في index.html
 window.checkSessionOnly = checkSessionOnly;
-
-
-
-
-
-
