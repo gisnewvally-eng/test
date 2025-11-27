@@ -25,29 +25,28 @@ export default async function handler(req, res) {
   }
 
   // ========== ADD USER ==========
-  if (req.query.action === "add-user" && req.method === "POST") {
-    const { name, email, password, role } = req.body;
+ if (req.query.action === "add-user" && req.method === "POST") {
+  const { name, email, password, role } = req.body;
 
-    const { data: user, error: signError } =
-      await supabase.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-      });
-
-    if (signError) return res.status(500).json({ error: signError.message });
-
-    await supabase.from("profiles").insert([
-      {
-        id: user.id,
-        role,
-        username: email.split("@")[0],
+  const { data: user, error: signError } =
+    await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
         name,
-      },
-    ]);
+        username: email.split("@")[0],
+        role
+      }
+    });
 
-    return res.json({ success: true });
-  }
+  if (signError)
+    return res.status(500).json({ error: signError.message });
+
+  // لا نضيف إلى profiles يدويًا — التريجر سيقوم بذلك
+  return res.json({ success: true });
+}
+
 
   // ========== UPDATE USER ==========
   if (req.query.action === "update-user" && req.method === "POST") {
