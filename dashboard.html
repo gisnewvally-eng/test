@@ -174,15 +174,21 @@ window.onload = async function(){
   };
 
   document.getElementById("addUserBtn").onclick = async function(){
-    const name = document.getElementById("newUserName").value.trim();
-    const email = document.getElementById("newUserEmail").value.trim();
-    const password = document.getElementById("newPassword").value;
-    const role = document.getElementById("newRole").value;
-    if(!name || !email || !password){ alert("املأ جميع الحقول"); return; }
+  const name = document.getElementById("newUserName").value.trim();
+  const email = document.getElementById("newUserEmail").value.trim();
+  const password = document.getElementById("newPassword").value;
+  const role = document.getElementById("newRole").value;
 
-    const success = await addUser(name,email,password,role);
-    if(success){ alert("تم إضافة المستخدم"); loadUsersList(); }
-  };
+  if(!name || !email || !password){ alert("املأ جميع الحقول"); return; }
+
+  const success = await addUser(name,email,password,role); // من users.js
+  if(success){
+    alert("تم إضافة المستخدم");
+    await loadUsersList();
+  } else {
+    alert("حدث خطأ أثناء الإضافة");
+  }
+};
 
   document.getElementById("logoutLink").onclick = e=>{ e.preventDefault(); logout(); };
 };
@@ -193,15 +199,17 @@ window.onload = async function(){
 async function loadUsersList(){
   const container = document.getElementById("usersList");
   container.innerHTML = "جاري التحميل...";
-  const users = await getUsers();
+  
+  const users = await getUsers(); // دالة من users.js
   if(!users || users.length===0){ container.innerHTML="لا يوجد مستخدمين"; return; }
 
   let html = `<table>
-    <thead><tr><th>الاسم</th><th>البريد</th><th>الدور</th><th>إجراء</th></tr></thead><tbody>`;
+    <thead><tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الدور</th><th>إجراء</th></tr></thead><tbody>`;
+
   users.forEach(u=>{
     html+=`<tr>
       <td>${u.name || u.username}</td>
-      <td>${u.username || u.email}</td>
+      <td>${u.email || u.username}</td> <!-- عرض البريد -->
       <td>
         <select onchange="updateUserRole('${u.id}',this.value)">
           <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
@@ -215,23 +223,24 @@ async function loadUsersList(){
       </td>
     </tr>`;
   });
+
   html+="</tbody></table>";
   container.innerHTML = html;
 }
-
 async function promptUpdatePassword(id){
   const pwd = prompt("أدخل كلمة السر الجديدة:");
   if(!pwd) return;
-  const success = await updateUserPassword(id, pwd);
+  const success = await updateUserPassword(id, pwd); // users.js
   if(success) alert("تم تغيير كلمة السر بنجاح");
 }
 
 async function confirmDeleteUser(id){
   if(!confirm("هل تريد حذف المستخدم؟")) return;
-  const success = await deleteUser(id);
+  const success = await deleteUser(id); // users.js
   if(success) alert("تم حذف المستخدم بنجاح");
-  loadUsersList();
+  await loadUsersList();
 }
+
 
 // ===========================
 // شارت الزيارات
@@ -259,6 +268,7 @@ async function updateVisitsChart(){
 
 </body>
 </html>
+
 
 
 
