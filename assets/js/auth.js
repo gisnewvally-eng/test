@@ -2,8 +2,7 @@
 
 // 1️⃣ تهيئة Supabase
 const SUPABASE_URL = "https://mvxjqtvmnibhxtfuufky.supabase.co";
-const SUPABASE_ANON_KEY =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12eGpxdHZtbmliaHh0ZnV1Zmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4NDU0NDAsImV4cCI6MjA3OTQyMTQ0MH0.P_s2APZULn9VLrEoyttWBsT-TR9Vf9J5WM-DFwjmWb0";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12eGpxdHZtbmliaHh0ZnV1Zmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM4NDU0NDAsImV4cCI6MjA3OTQyMTQ0MH0.P_s2APZULn9VLrEoyttWBsT-TR9Vf9J5WM-DFwjmWb0";
 
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -339,6 +338,7 @@ window.trackVisit = trackVisit;
 window.getVisitStats = getVisitStats;
 // تصدير الدالة للاستخدام في index.html
 window.checkSessionOnly = checkSessionOnly;
+
 
 
 
