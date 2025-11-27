@@ -1,4 +1,0 @@
-{
-  "type" : "FeatureCollection",
-  "features" : [{"type":"Feature","id":1,"geometry":{"type":"Point","coordinates":[30.57373251451801,25.480002879267104]},"properties":{"OBJECTID":1,"NAME":null,"description":"غرفة غسيل","fcode":"52"}},{"type":"Feature","id":2,"geometry":{"type":"Point","coordinates":[30.574583324053116,25.479893619486511]},"properties":{"OBJECTID":2,"NAME":null,"description":"غرفة هواء","fcode":"52"}},{"type":"Feature","id":3,"geometry":{"type":"Point","coordinates":[30.574614182422781,25.480416717156267]},"properties":{"OBJECTID":3,"NAME":null,"description":"غرفة محابس","fcode":"55"}}]
-}
