@@ -130,6 +130,16 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
     <canvas id="visitsChart"></canvas>
   </div>
 </div>
+<!-- إدارة فريق العمل -->
+<div id="adminTeam" class="admin-section">
+  <h3>إدارة فريق العمل</h3>
+  <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">
+    <input type="text" id="newMemberName" placeholder="اسم العضو">
+    <input type="text" id="newMemberImage" placeholder="رابط الصورة">
+    <button id="addMemberBtn" class="save">إضافة عضو</button>
+  </div>
+  <div id="teamList">جاري تحميل أعضاء الفريق...</div>
+</div>
 
 <footer>
   إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
@@ -359,10 +369,93 @@ setInterval(updateVisitsChart, 30000);
 // تحديث عند تحميل الصفحة
 window.addEventListener('load', updateVisitsChart);
 
+  // ===========================
+// إدارة أعضاء الفريق
+// ===========================
+async function loadTeamList(){
+  const container = document.getElementById("teamList");
+  container.innerHTML = "جاري التحميل...";
+
+  try {
+    const res = await fetch('/api/team?action=get-team');
+    const data = await res.json();
+    if(!data.team || data.team.length===0){ container.innerHTML="لا يوجد أعضاء"; return; }
+
+    let html = `<table>
+      <thead><tr><th>الاسم</th><th>الصورة</th><th>إجراء</th></tr></thead><tbody>`;
+
+    data.team.forEach(m=>{
+      html+=`<tr>
+        <td><input type="text" value="${m.name}" onchange="updateTeamMember('${m.id}', this.value, '${m.image_url || ''}')"></td>
+        <td><input type="text" value="${m.image_url || ''}" onchange="updateTeamMember('${m.id}', '${m.name}', this.value)"></td>
+        <td>
+          <button class="delete" onclick="confirmDeleteTeamMember('${m.id}')">حذف</button>
+        </td>
+      </tr>`;
+    });
+
+    html+="</tbody></table>";
+    container.innerHTML = html;
+  } catch(err){
+    container.innerHTML = "حدث خطأ أثناء التحميل";
+    console.error(err);
+  }
+}
+
+// إضافة عضو جديد
+document.getElementById("addMemberBtn").onclick = async function(){
+  const name = document.getElementById("newMemberName").value.trim();
+  const image_url = document.getElementById("newMemberImage").value.trim();
+  if(!name){ alert("أدخل اسم العضو"); return; }
+
+  const res = await fetch('/api/team?action=add-member', {
+    method: 'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name,image_url})
+  });
+  const data = await res.json();
+  if(data.success){
+    alert("تم إضافة العضو");
+    document.getElementById("newMemberName").value='';
+    document.getElementById("newMemberImage").value='';
+    await loadTeamList();
+  } else alert("حدث خطأ أثناء الإضافة");
+}
+
+// تحديث العضو
+async function updateTeamMember(id,name,image_url){
+  const res = await fetch('/api/team?action=update-member', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id,name,image_url})
+  });
+  const data = await res.json();
+  if(!data.success) alert("حدث خطأ أثناء التعديل");
+}
+
+// حذف العضو
+async function confirmDeleteTeamMember(id){
+  if(!confirm("هل تريد حذف العضو؟")) return;
+  const res = await fetch('/api/team?action=delete-member', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({id})
+  });
+  const data = await res.json();
+  if(data.success) {
+    alert("تم حذف العضو");
+    await loadTeamList();
+  } else alert("حدث خطأ أثناء الحذف");
+}
+
+// استدعاء التحميل عند فتح الصفحة
+window.addEventListener('load', loadTeamList);
+
 </script>
 
 </body>
 </html>
+
 
 
 
