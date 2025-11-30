@@ -330,7 +330,9 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
     font-size: 18px;
   }
 }
-
+.team-section { max-width: 900px; margin: 20px auto; padding: 10px; }
+.team-section h4 { text-align:center; margin-bottom: 15px; color:#1a2980; }
+#teamGrid { display:grid; grid-template-columns: repeat(3, 1fr); gap:20px; }
 </style>
 </head>
 <body>
@@ -394,10 +396,8 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
 </div>
 
 <div class="team-section">
-  <h4>فريق العمل</h4>
-  <div id="teamGrid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:20px;">
-    جاري تحميل فريق العمل...
-  </div>
+  <h4>فريق العمل</h4>
+  <div id="teamGrid">جاري تحميل فريق العمل...</div>
 </div>
 
 <footer>
@@ -514,69 +514,49 @@ document.addEventListener("DOMContentLoaded", async function () {
 // عرض فريق العمل
 // ----------------------------------------------------------------------
 // تحميل فريق العمل من API
-// === تحميل فريق العمل من API مع الاسم والدور ===
 async function loadTeamHome(){
-  const teamGrid = document.getElementById("teamGrid");
-  teamGrid.innerHTML = "جاري تحميل فريق العمل...";
-  try {
-    const res = await fetch('/api/team');
-    if(!res.ok) throw new Error("فشل تحميل البيانات");
-    const json = await res.json();
-    const team = json.team || [];
-    if(team.length === 0){ teamGrid.innerHTML = "لا يوجد أعضاء"; return; }
-
-    teamGrid.innerHTML = "";
-    team.forEach(member=>{
-      const card = document.createElement("div");
-      card.style.background="#fff";
-      card.style.borderRadius="10px";
-      card.style.boxShadow="0 2px 8px rgba(0,0,0,0.1)";
-      card.style.textAlign="center";
-      card.style.padding="15px";
-      card.style.display="flex";
-      card.style.flexDirection="column";
-      card.style.alignItems="center";
-
-      // صورة العضو
-      const img = document.createElement("img");
-      img.src = member.image_url || "assets/images/placeholder.png";
-      img.alt = member.name;
-      img.style.width="100px";
-      img.style.height="100px";
-      img.style.objectFit="cover";
-      img.style.borderRadius="50%";
-      img.style.marginBottom="10px";
-
-      // اسم العضو
-      const name = document.createElement("div");
-      name.textContent = member.name;
-      name.style.fontWeight="700";
-      name.style.fontSize="14px";
-      name.style.marginBottom="5px";
-
-      // دور أو تخصص العضو
-      const role = document.createElement("div");
-      role.textContent = member.role || member.position || "";
-      role.style.fontSize = "13px";
-      role.style.color = "#555";
-
-      card.appendChild(img);
-      card.appendChild(name);
-      card.appendChild(role);
-      teamGrid.appendChild(card);
-    });
-  } catch(err){
-    teamGrid.innerHTML = "حدث خطأ أثناء تحميل البيانات";
-    console.error(err);
-  }
+  const teamGrid = document.getElementById("teamGrid");
+  teamGrid.innerHTML = "جاري تحميل فريق العمل...";
+  try {
+    const res = await fetch('/api/team');
+    const { team, error } = await res.json();
+    if(error){ teamGrid.innerHTML = "حدث خطأ"; console.error(error); return; }
+    if(!team || team.length === 0){ teamGrid.innerHTML = "لا يوجد أعضاء"; return; }
+    teamGrid.innerHTML = "";
+    team.forEach(member => {
+      const card = document.createElement("div");
+      card.style.background="#fff";
+      card.style.borderRadius="10px";
+      card.style.boxShadow="0 2px 8px rgba(0,0,0,0.1)";
+      card.style.textAlign="center";
+      card.style.padding="10px";
+      const img = document.createElement("img");
+      img.src = member.image_url || "assets/images/placeholder.png";
+      img.alt = member.name;
+      img.style.width="100px";
+      img.style.height="100px";
+      img.style.objectFit="cover";
+      img.style.borderRadius="50%";
+      img.style.marginBottom="10px";
+      const name = document.createElement("div");
+      name.textContent = member.name;
+      name.style.fontWeight="700";
+      name.style.fontSize="14px";
+      card.appendChild(img);
+      card.appendChild(name);
+      teamGrid.appendChild(card);
+    });
+  } catch(err){
+    teamGrid.innerHTML = "حدث خطأ أثناء تحميل البيانات";
+    console.error(err);
+  }
 }
-
-// التأكد من تحميل الفريق عند فتح الصفحة
 window.addEventListener("DOMContentLoaded", loadTeamHome);
 </script>
 
 </body>
 </html>
+
 
 
 
