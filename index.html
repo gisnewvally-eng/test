@@ -393,12 +393,27 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
   </p>
 </div>
 
+<!-- ================== إدارة فريق العمل ================== -->
+<div id="manageTeamSection" class="admin-section">
+  <h4>إدارة فريق العمل</h4>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+    <input type="text" id="newMemberName" placeholder="اسم العضو">
+    <input type="url" id="newMemberImage" placeholder="رابط الصورة (Supabase)">
+    <button id="addMemberBtn" class="save">إضافة عضو</button>
+  </div>
+
+  <div id="teamList">جاري تحميل الفريق...</div>
+</div>
 
  
 <footer>
   إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
   <span class="line2">Designed By Eng. Ahmed Labib </span>
 </footer>
+
+
+   
 <script>
 // ----------------------------------------------------------------------
 // منطق السلايدر
@@ -502,10 +517,82 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 });
+
+   async function loadTeamAdmin(){
+  const teamList = document.getElementById("teamList");
+  teamList.innerHTML = "جاري تحميل الفريق...";
+
+  try {
+    const { data: team, error } = await supabaseClient.from('team').select('*').order('id');
+    if(error){ teamList.innerHTML = "حدث خطأ"; console.error(error); return; }
+    if(!team || team.length===0){ teamList.innerHTML = "لا يوجد أعضاء"; return; }
+
+    let html = `<table>
+      <thead><tr><th>الاسم</th><th>الصورة</th><th>إجراءات</th></tr></thead><tbody>`;
+
+    team.forEach(member=>{
+      html += `<tr>
+        <td><input type="text" value="${member.name}" data-id="${member.id}" class="memberNameInput"></td>
+        <td><input type="url" value="${member.image_url}" data-id="${member.id}" class="memberImageInput"></td>
+        <td>
+          <button class="save" onclick="updateMember(${member.id})">حفظ</button>
+          <button class="delete" onclick="deleteMember(${member.id})">حذف</button>
+        </td>
+      </tr>`;
+    });
+
+    html += `</tbody></table>`;
+    teamList.innerHTML = html;
+
+  } catch(err){
+    teamList.innerHTML = "حدث خطأ أثناء تحميل البيانات";
+    console.error(err);
+  }
+}
+
+async function addMember(){
+  const name = document.getElementById("newMemberName").value.trim();
+  const image_url = document.getElementById("newMemberImage").value.trim();
+  if(!name){ alert("ادخل اسم العضو"); return; }
+
+  const { error } = await supabaseClient.from('team').insert({ name, image_url });
+  if(error){ alert("حدث خطأ أثناء الإضافة"); console.error(error); return; }
+
+  document.getElementById("newMemberName").value = "";
+  document.getElementById("newMemberImage").value = "";
+  await loadTeamAdmin();
+}
+
+async function updateMember(id){
+  const nameInput = document.querySelector(`.memberNameInput[data-id="${id}"]`);
+  const imageInput = document.querySelector(`.memberImageInput[data-id="${id}"]`);
+  const name = nameInput.value.trim();
+  const image_url = imageInput.value.trim();
+
+  if(!name){ alert("الاسم لا يمكن أن يكون فارغ"); return; }
+
+  const { error } = await supabaseClient.from('team').update({ name, image_url }).eq('id', id);
+  if(error){ alert("حدث خطأ أثناء التحديث"); console.error(error); return; }
+
+  alert("تم تحديث العضو بنجاح");
+}
+
+async function deleteMember(id){
+  if(!confirm("هل تريد حذف هذا العضو؟")) return;
+  const { error } = await supabaseClient.from('team').delete().eq('id', id);
+  if(error){ alert("حدث خطأ أثناء الحذف"); console.error(error); return; }
+  await loadTeamAdmin();
+}
+
+document.getElementById("addMemberBtn").onclick = addMember;
+
+// تحميل الفريق عند فتح صفحة الأدمن
+window.addEventListener("load", loadTeamAdmin);
 </script>
 
 </body>
 </html>
+
 
 
 
