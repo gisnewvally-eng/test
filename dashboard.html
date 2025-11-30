@@ -245,29 +245,111 @@ async function confirmDeleteUser(id){
 // ===========================
 // شارت الزيارات
 // ===========================
-async function updateVisitsChart(){
-  const statsData = await getVisitStats();
-  if(!statsData) return;
+// ===========================
+// دالة جلب إحصائيات الزيارات لكل مستخدم
+// ===========================
+async function getUsersVisits() {
+  try {
+    // جلب جميع المستخدمين
+    const resUsers = await fetch('/api/users?action=get-users');
+    const usersData = await resUsers.json();
+    if (!usersData.users) return [];
 
-  const labels = [];
-  const data = [];
-  Object.keys(statsData).forEach(role=>{
-    labels.push(role);
-    data.push(statsData[role]); // عدد الزيارات
-  });
+    const users = usersData.users;
+
+    // جلب كل الزيارات
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_ANON_KEY; // أو SERVICE_ROLE إذا تحتاج صلاحيات
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+    const { data: visits, error } = await supabase
+      .from('visits')
+      .select('user_id, created_at');
+
+    if (error) throw new Error(error.message);
+
+    // معالجة البيانات لكل مستخدم
+    const stats = users.map(u => {
+      const userVisits = visits.filter(v => v.user_id === u.id);
+      const lastVisit = userVisits.length
+        ? new Date(Math.max(...userVisits.map(v => new Date(v.created_at))))
+        : null;
+
+      return {
+        id: u.id,
+        name: u.name || u.username,
+        visits: userVisits.length,
+        lastVisit: lastVisit ? lastVisit.toLocaleString('ar-EG') : 'لا يوجد زيارات'
+      };
+    });
+
+    return stats;
+
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+}
+
+// ===========================
+// تحديث شارت الزيارات
+// ===========================
+let visitsChart;
+
+async function updateVisitsChart() {
+  const usersVisits = await getUsersVisits();
+  if (!usersVisits || usersVisits.length === 0) return;
+
+  const labels = usersVisits.map(u => u.name);
+  const data = usersVisits.map(u => u.visits);
+  const lastVisits = usersVisits.map(u => u.lastVisit);
+
+  // توليد ألوان مختلفة لكل عمود
+  const backgroundColors = usersVisits.map(() =>
+    `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
+  );
 
   const ctx = document.getElementById('visitsChart').getContext('2d');
-  if(visitsChart) visitsChart.destroy();
-  visitsChart = new Chart(ctx,{
-    type:'bar',
-    data:{ labels, datasets:[{ label:'عدد الزيارات', data, backgroundColor:'#004b8d' }] },
-    options:{ responsive:true, maintainAspectRatio:false, scales:{y:{beginAtZero:true}} }
+  if (visitsChart) visitsChart.destroy();
+
+  visitsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'عدد الزيارات',
+        data,
+        backgroundColor: backgroundColors
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const index = context.dataIndex;
+              return `زيارات: ${data[index]} | آخر زيارة: ${lastVisits[index]}`;
+            }
+          }
+        }
+      },
+      scales: { y: { beginAtZero: true } }
+    }
   });
 }
+
+// ===========================
+// تحديث تلقائي كل 30 ثانية
+// ===========================
+setInterval(updateVisitsChart, 30000);
+
 </script>
 
 </body>
 </html>
+
 
 
 
