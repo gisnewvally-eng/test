@@ -94,9 +94,15 @@ header {
   text-align: center;
   background: rgba(0, 0, 0, 0.4);
   color: #fff;
-  padding: 3vw 5vw;
+  padding: 2vw 4vw; /* تقليل البادينج قليلاً */
   border-radius: 12px;
   max-width: 90%;
+  line-height: 1.3; /* تقليل المسافة بين السطور */
+}
+
+.content p {
+  margin-top: 5px; /* إزالة أي فراغ كبير أعلى الفقرة */
+  margin-bottom: 0;
 }
 
 /* زر تسجيل الدخول */
@@ -256,6 +262,30 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
   .header-logo { height: 35px; width: 35px; }
   .user-dashboard { padding: 5px 10px; font-size: 13px; }
 }
+/* =======================
+   قسم النبذة والمعلومات
+======================= */
+.info-section {
+  max-width: 900px;
+  margin: 20px auto 40px auto; /* مسافة فوق وتحت */
+  padding: 20px;
+  background: rgba(255,255,255,0.9);
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.info-section h3 {
+  font-size: 1.8rem;
+  margin-bottom: 12px;
+  color: #1a2980;
+}
+
+.info-section p {
+  font-size: 1rem;
+  line-height: 1.6; /* تقليل فراغ الأسطر  */
+  color: #333;
+}
 
 </style>
 </head>
@@ -296,6 +326,15 @@ header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px
  <a class="login-btn" id="loginBtn" href="login.html">تسجيل الدخول</a>
 
 </div>
+  <!-- قسم النبذة والمعلومات -->
+<div class="info-section">
+  <h3>نبذة عن النظام</h3>
+  <p>
+    نظام شامل لإدارة بيانات البنية التحتية ومتابعة تحديثات الخرائط والخدمات الجغرافية.
+    يوفر واجهة سهلة الاستخدام لمراقبة الشبكات وتحديث المعلومات الجغرافية بشكل دوري.
+  </p>
+</div>
+ 
 <footer>
   إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
   <span class="line2">Designed By Eng. Ahmed Labib </span>
@@ -407,6 +446,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 </body>
 </html>
+
 
 
 
