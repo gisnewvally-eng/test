@@ -513,14 +513,20 @@ document.addEventListener("DOMContentLoaded", async function () {
 // ----------------------------------------------------------------------
 // عرض فريق العمل
 // ----------------------------------------------------------------------
+// تحميل فريق العمل من API
+    loadTeamHome();
+});
+
+// === تحميل فريق العمل من API ===
 async function loadTeamHome(){
   const teamGrid = document.getElementById("teamGrid");
   teamGrid.innerHTML = "جاري تحميل فريق العمل...";
-
   try {
-    const { data: team, error } = await supabaseClient.from('team').select('*').order('id');
-    if(error){ teamGrid.innerHTML = "حدث خطأ"; console.error(error); return; }
-    if(!team || team.length===0){ teamGrid.innerHTML = "لا يوجد أعضاء"; return; }
+    const res = await fetch('/api/team');
+    if(!res.ok) throw new Error("فشل تحميل البيانات");
+    const json = await res.json();
+    const team = json.team || [];
+    if(team.length === 0){ teamGrid.innerHTML = "لا يوجد أعضاء"; return; }
 
     teamGrid.innerHTML = "";
     team.forEach(member=>{
@@ -549,18 +555,16 @@ async function loadTeamHome(){
       card.appendChild(name);
       teamGrid.appendChild(card);
     });
-
   } catch(err){
     teamGrid.innerHTML = "حدث خطأ أثناء تحميل البيانات";
     console.error(err);
   }
 }
-
-window.addEventListener("DOMContentLoaded", loadTeamHome);
 </script>
 
 </body>
 </html>
+
 
 
 
