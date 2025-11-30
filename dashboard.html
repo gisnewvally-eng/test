@@ -292,11 +292,11 @@ async function getUsersVisits() {
   }
 }
 
-// ===========================
-// تحديث شارت الزيارات
-// ===========================
 
 
+// ===========================
+// تحديث شارت الزيارات (نسخة محسّنة)
+// ===========================
 async function updateVisitsChart() {
   const usersVisits = await getUsersVisits();
   if (!usersVisits || usersVisits.length === 0) return;
@@ -305,11 +305,14 @@ async function updateVisitsChart() {
   const data = usersVisits.map(u => u.visits);
   const lastVisits = usersVisits.map(u => u.lastVisit);
 
+  // توليد ألوان مختلفة لكل عمود
   const backgroundColors = usersVisits.map(() =>
     `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
   );
 
   const ctx = document.getElementById('visitsChart').getContext('2d');
+  
+  // إذا كان الشارت موجود مسبقًا، دمره قبل الإنشاء الجديد
   if (visitsChart) visitsChart.destroy();
 
   visitsChart = new Chart(ctx, {
@@ -319,7 +322,8 @@ async function updateVisitsChart() {
       datasets: [{
         label: 'عدد الزيارات',
         data,
-        backgroundColor: backgroundColors
+        backgroundColor: backgroundColors,
+        hoverBackgroundColor: backgroundColors.map(c => c.replace('50%', '70%')) // لون أعمدة عند hover
       }]
     },
     options: {
@@ -327,15 +331,23 @@ async function updateVisitsChart() {
       maintainAspectRatio: false,
       plugins: {
         tooltip: {
+          enabled: true,
           callbacks: {
             label: function(context) {
-              const idx = context.dataIndex;
-              return `زيارات: ${data[idx]} | آخر زيارة: ${lastVisits[idx]}`;
+              const index = context.dataIndex;
+              return `زيارات: ${data[index]} | آخر زيارة: ${lastVisits[index]}`;
             }
           }
         }
       },
-      scales: { y: { beginAtZero: true } }
+      interaction: {
+        mode: 'index',  // hover يظهر على كل الأعمدة
+        intersect: false
+      },
+      scales: {
+        y: { beginAtZero: true },
+        x: { ticks: { autoSkip: false } } // لمنع اختفاء أسماء المستخدمين
+      }
     }
   });
 }
@@ -351,6 +363,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
