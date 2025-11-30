@@ -246,7 +246,11 @@ async function confirmDeleteUser(id){
 // ===========================
 // ===========================
 // دالة جلب إحصائيات الزيارات لكل مستخدم
-// ===========================
+
+// متغير الشارت
+let visitsChart;
+
+// دالة جلب إحصائيات الزيارات لكل مستخدم
 async function getUsersVisits() {
   try {
     // جلب جميع المستخدمين
@@ -256,16 +260,10 @@ async function getUsersVisits() {
 
     const users = usersData.users;
 
-    // جلب كل الزيارات
-    const supabaseUrl = process.env.SUPABASE_URL;
-    const supabaseKey = process.env.SUPABASE_ANON_KEY; // أو SERVICE_ROLE إذا تحتاج صلاحيات
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-    const { data: visits, error } = await supabase
-      .from('visits')
-      .select('user_id, created_at');
-
-    if (error) throw new Error(error.message);
+    // جلب زيارات المستخدمين من API جديد visits.js
+    const resVisits = await fetch('/api/visits?action=get-visits');
+    const visitsData = await resVisits.json();
+    const visits = visitsData.visits || [];
 
     // معالجة البيانات لكل مستخدم
     const stats = users.map(u => {
@@ -290,11 +288,7 @@ async function getUsersVisits() {
   }
 }
 
-// ===========================
-// تحديث شارت الزيارات
-// ===========================
-let visitsChart;
-
+// دالة تحديث الشارت
 async function updateVisitsChart() {
   const usersVisits = await getUsersVisits();
   if (!usersVisits || usersVisits.length === 0) return;
@@ -339,15 +333,17 @@ async function updateVisitsChart() {
   });
 }
 
-// ===========================
 // تحديث تلقائي كل 30 ثانية
-// ===========================
 setInterval(updateVisitsChart, 30000);
+
+// تحديث عند تحميل الصفحة
+window.addEventListener('load', updateVisitsChart);
 
 </script>
 
 </body>
 </html>
+
 
 
 
