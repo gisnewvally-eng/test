@@ -514,10 +514,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 // عرض فريق العمل
 // ----------------------------------------------------------------------
 // تحميل فريق العمل من API
-    loadTeamHome();
-});
-
-// === تحميل فريق العمل من API ===
+// === تحميل فريق العمل من API مع الاسم والدور ===
 async function loadTeamHome(){
   const teamGrid = document.getElementById("teamGrid");
   teamGrid.innerHTML = "جاري تحميل فريق العمل...";
@@ -535,8 +532,12 @@ async function loadTeamHome(){
       card.style.borderRadius="10px";
       card.style.boxShadow="0 2px 8px rgba(0,0,0,0.1)";
       card.style.textAlign="center";
-      card.style.padding="10px";
+      card.style.padding="15px";
+      card.style.display="flex";
+      card.style.flexDirection="column";
+      card.style.alignItems="center";
 
+      // صورة العضو
       const img = document.createElement("img");
       img.src = member.image_url || "assets/images/placeholder.png";
       img.alt = member.name;
@@ -546,13 +547,22 @@ async function loadTeamHome(){
       img.style.borderRadius="50%";
       img.style.marginBottom="10px";
 
+      // اسم العضو
       const name = document.createElement("div");
       name.textContent = member.name;
       name.style.fontWeight="700";
       name.style.fontSize="14px";
+      name.style.marginBottom="5px";
+
+      // دور أو تخصص العضو
+      const role = document.createElement("div");
+      role.textContent = member.role || member.position || "";
+      role.style.fontSize = "13px";
+      role.style.color = "#555";
 
       card.appendChild(img);
       card.appendChild(name);
+      card.appendChild(role);
       teamGrid.appendChild(card);
     });
   } catch(err){
@@ -560,10 +570,14 @@ async function loadTeamHome(){
     console.error(err);
   }
 }
+
+// التأكد من تحميل الفريق عند فتح الصفحة
+window.addEventListener("DOMContentLoaded", loadTeamHome);
 </script>
 
 </body>
 </html>
+
 
 
 
