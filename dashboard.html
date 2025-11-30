@@ -253,16 +253,17 @@ let visitsChart;
 // ===========================
 // دالة جلب إحصائيات الزيارات لكل مستخدم
 // ===========================
+// ===========================
+// دالة جلب إحصائيات الزيارات لكل مستخدم
+// ===========================
 async function getUsersVisits() {
   try {
-    // جلب جميع المستخدمين
     const resUsers = await fetch('/api/users?action=get-users');
     const usersData = await resUsers.json();
     if (!usersData.users) return [];
 
     const users = usersData.users;
 
-    // جلب جميع الزيارات
     const resVisits = await fetch('/api/visits?action=get-visits');
     const visitsData = await resVisits.json();
     if (!visitsData.visits) return [];
@@ -285,7 +286,6 @@ async function getUsersVisits() {
     });
 
     return stats;
-
   } catch (err) {
     console.error(err);
     return [];
@@ -296,6 +296,7 @@ async function getUsersVisits() {
 // تحديث شارت الزيارات
 // ===========================
 
+
 async function updateVisitsChart() {
   const usersVisits = await getUsersVisits();
   if (!usersVisits || usersVisits.length === 0) return;
@@ -304,7 +305,6 @@ async function updateVisitsChart() {
   const data = usersVisits.map(u => u.visits);
   const lastVisits = usersVisits.map(u => u.lastVisit);
 
-  // توليد ألوان مختلفة لكل عمود
   const backgroundColors = usersVisits.map(() =>
     `hsl(${Math.floor(Math.random() * 360)}, 70%, 50%)`
   );
@@ -329,8 +329,8 @@ async function updateVisitsChart() {
         tooltip: {
           callbacks: {
             label: function(context) {
-              const index = context.dataIndex;
-              return `زيارات: ${data[index]} | آخر زيارة: ${lastVisits[index]}`;
+              const idx = context.dataIndex;
+              return `زيارات: ${data[idx]} | آخر زيارة: ${lastVisits[idx]}`;
             }
           }
         }
@@ -340,10 +340,9 @@ async function updateVisitsChart() {
   });
 }
 
-// ===========================
 // تحديث تلقائي كل 30 ثانية
-// ===========================
 setInterval(updateVisitsChart, 30000);
+
 
 // تحديث عند تحميل الصفحة
 window.addEventListener('load', updateVisitsChart);
@@ -352,5 +351,6 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
