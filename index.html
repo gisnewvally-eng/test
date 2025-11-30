@@ -514,48 +514,61 @@ document.addEventListener("DOMContentLoaded", async function () {
 // عرض فريق العمل
 // ----------------------------------------------------------------------
 // تحميل فريق العمل من API
-async function loadTeamHome(){
-  const teamGrid = document.getElementById("teamGrid");
-  teamGrid.innerHTML = "جاري تحميل فريق العمل...";
-  try {
-    const res = await fetch('/api/team');
-    const { team, error } = await res.json();
-    if(error){ teamGrid.innerHTML = "حدث خطأ"; console.error(error); return; }
-    if(!team || team.length === 0){ teamGrid.innerHTML = "لا يوجد أعضاء"; return; }
-    teamGrid.innerHTML = "";
-    team.forEach(member => {
-      const card = document.createElement("div");
-      card.style.background="#fff";
-      card.style.borderRadius="10px";
-      card.style.boxShadow="0 2px 8px rgba(0,0,0,0.1)";
-      card.style.textAlign="center";
-      card.style.padding="10px";
-      const img = document.createElement("img");
-      img.src = member.image_url || "assets/images/placeholder.png";
-      img.alt = member.name;
-      img.style.width="100px";
-      img.style.height="100px";
-      img.style.objectFit="cover";
-      img.style.borderRadius="50%";
-      img.style.marginBottom="10px";
-      const name = document.createElement("div");
-      name.textContent = member.name;
-      name.style.fontWeight="700";
-      name.style.fontSize="14px";
-      card.appendChild(img);
-      card.appendChild(name);
-      teamGrid.appendChild(card);
-    });
-  } catch(err){
-    teamGrid.innerHTML = "حدث خطأ أثناء تحميل البيانات";
-    console.error(err);
-  }
+async function loadTeamHome() {
+  const teamGrid = document.getElementById("teamGrid");
+  teamGrid.innerHTML = "جاري تحميل فريق العمل...";
+
+  try {
+    const res = await fetch(
+      "https://supabase-admin-api-xi.vercel.app/api/team?action=get-team"
+    );
+
+    const json = await res.json();
+    const team = json.team;
+
+    if (!team || team.length === 0) {
+      teamGrid.innerHTML = "لا يوجد أعضاء مضافين بعد";
+      return;
+    }
+
+    teamGrid.innerHTML = "";
+    team.forEach(member => {
+      const card = document.createElement("div");
+      card.style.background = "#fff";
+      card.style.borderRadius = "12px";
+      card.style.boxShadow = "0 2px 8px rgba(0,0,0,0.1)";
+      card.style.textAlign = "center";
+      card.style.padding = "10px";
+
+      const img = document.createElement("img");
+      img.src = member.image_url || "assets/images/placeholder.png";
+      img.alt = member.name;
+      img.style.width = "100px";
+      img.style.height = "100px";
+      img.style.objectFit = "cover";
+      img.style.borderRadius = "50%";
+      img.style.marginBottom = "10px";
+
+      const name = document.createElement("div");
+      name.textContent = member.name;
+      name.style.fontWeight = "700";
+
+      card.appendChild(img);
+      card.appendChild(name);
+      teamGrid.appendChild(card);
+    });
+
+  } catch (error) {
+    console.error("Error loading team:", error);
+    teamGrid.innerHTML = "حدث خطأ أثناء تحميل بيانات الفريق";
+  }
 }
-window.addEventListener("DOMContentLoaded", loadTeamHome);
+
 </script>
 
 </body>
 </html>
+
 
 
 
