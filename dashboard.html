@@ -250,7 +250,9 @@ async function confirmDeleteUser(id){
 // متغير الشارت
 let visitsChart;
 
+// ===========================
 // دالة جلب إحصائيات الزيارات لكل مستخدم
+// ===========================
 async function getUsersVisits() {
   try {
     // جلب جميع المستخدمين
@@ -260,16 +262,18 @@ async function getUsersVisits() {
 
     const users = usersData.users;
 
-    // جلب زيارات المستخدمين من API جديد visits.js
+    // جلب جميع الزيارات
     const resVisits = await fetch('/api/visits?action=get-visits');
     const visitsData = await resVisits.json();
-    const visits = visitsData.visits || [];
+    if (!visitsData.visits) return [];
+
+    const visits = visitsData.visits;
 
     // معالجة البيانات لكل مستخدم
     const stats = users.map(u => {
       const userVisits = visits.filter(v => v.user_id === u.id);
       const lastVisit = userVisits.length
-        ? new Date(Math.max(...userVisits.map(v => new Date(v.created_at))))
+        ? new Date(Math.max(...userVisits.map(v => new Date(v.visit_time))))
         : null;
 
       return {
@@ -288,7 +292,11 @@ async function getUsersVisits() {
   }
 }
 
-// دالة تحديث الشارت
+// ===========================
+// تحديث شارت الزيارات
+// ===========================
+let visitsChart;
+
 async function updateVisitsChart() {
   const usersVisits = await getUsersVisits();
   if (!usersVisits || usersVisits.length === 0) return;
@@ -333,7 +341,9 @@ async function updateVisitsChart() {
   });
 }
 
+// ===========================
 // تحديث تلقائي كل 30 ثانية
+// ===========================
 setInterval(updateVisitsChart, 30000);
 
 // تحديث عند تحميل الصفحة
@@ -343,12 +353,4 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
-
-
-
-
-
-
-
-
 
