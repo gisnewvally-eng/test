@@ -100,10 +100,6 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
     font-size:26px; 
   }
 
-  /* الجداول */
-  table th { padding:5px; font-size:12px; }
-  button { padding:3px 6px; font-size:12px; }
-
   /* Inputs */
   input, select { padding:3px; font-size:12px; }
 
@@ -142,7 +138,7 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
     width: 100%;
   }
 
-  table thead { display: none; } /* إخفاء رؤوس الجدول */
+  table thead { display: none; }
 
   table tr {
     border: 1px solid #ccc;
@@ -193,6 +189,7 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
     margin-right: 0;
   }
 }
+
 
 
 </style>
@@ -313,23 +310,24 @@ async function loadUsersList(){
   let html = `<table>
     <thead><tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الدور</th><th>إجراء</th></tr></thead><tbody>`;
 
- users.forEach(u=>{
+users.forEach(u=>{
   html+=`<tr>
     <td>${u.name || u.username}</td>
-    <td>${u.email || u.username}</td> <!-- عرض البريد -->
+    <td>${u.email || u.username}</td>
     <td>
       <select onchange="updateUserRole('${u.id}',this.value)">
         <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
         <option value="user" ${u.role==='user'?'selected':''}>User</option>
         <option value="guest" ${u.role==='guest'?'selected':''}>Guest</option>
       </select>
-      <div class="action-buttons">
-        <button class="save" onclick="promptUpdatePassword('${u.id}')">تغيير كلمة السر</button>
-        <button class="delete" onclick="confirmDeleteUser('${u.id}')">حذف</button>
-      </div>
+    </td>
+    <td>
+      <button class="save" onclick="promptUpdatePassword('${u.id}')">تغيير كلمة السر</button>
+      <button class="delete" onclick="confirmDeleteUser('${u.id}')">حذف</button>
     </td>
   </tr>`;
 });
+
 
 
   html+="</tbody></table>";
@@ -465,6 +463,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
