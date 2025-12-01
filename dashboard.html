@@ -101,7 +101,7 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
   }
 
   /* الجداول */
-  table th, table td { padding:5px; font-size:12px; }
+  table th { padding:5px; font-size:12px; }
   button { padding:3px 6px; font-size:12px; }
 
   /* Inputs */
@@ -140,7 +140,54 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
   /* Chart */
   #visitsChart { height:140px !important; }
 }
+@media (max-width: 768px) {
+  table, thead, tbody, th, td, tr {
+    display: block;
+    width: 100%;
+  }
 
+  table thead {
+    display: none; /* إخفاء العناوين في الجوال */
+  }
+
+  table tr {
+    margin-bottom: 15px;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 10px;
+  }
+
+  table td {
+    text-align: right;
+    padding: 5px 10px;
+    font-size: 13px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  /* السطر الأول: الاسم والبريد */
+  table td:nth-child(1),
+  table td:nth-child(2) {
+    flex: 1 1 45%;
+    margin-bottom: 5px;
+  }
+
+  /* السطر الثاني: الدور والأزرار */
+  table td:nth-child(3),
+  table td:nth-child(4) {
+    flex: 1 1 45%;
+  }
+
+  table td select {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+
+  table td button {
+    flex: 1 1 48%;
+    margin-bottom: 5px;
+  }
+}
 </style>
 </head>
 <body>
@@ -410,6 +457,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
