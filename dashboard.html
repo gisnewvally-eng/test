@@ -191,6 +191,22 @@ table td button {
   margin-bottom: 5px;
   }
 }
+  @media (max-width:768px) {
+  td select, td .action-buttons {
+    display:block;
+    width:100%;
+    margin-bottom:5px;
+  }
+  td .action-buttons button {
+    width:48%; /* عرض الأزرار متساوي */
+    margin-right:2%;
+    margin-bottom:5px;
+  }
+  td .action-buttons button:last-child {
+    margin-right:0;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -309,23 +325,24 @@ async function loadUsersList(){
   let html = `<table>
     <thead><tr><th>الاسم</th><th>البريد الإلكتروني</th><th>الدور</th><th>إجراء</th></tr></thead><tbody>`;
 
-  users.forEach(u=>{
-    html+=`<tr>
-      <td>${u.name || u.username}</td>
-      <td>${u.email || u.username}</td> <!-- عرض البريد -->
-      <td>
-        <select onchange="updateUserRole('${u.id}',this.value)">
-          <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
-          <option value="user" ${u.role==='user'?'selected':''}>User</option>
-          <option value="guest" ${u.role==='guest'?'selected':''}>Guest</option>
-        </select>
-      </td>
-      <td>
+ users.forEach(u=>{
+  html+=`<tr>
+    <td>${u.name || u.username}</td>
+    <td>${u.email || u.username}</td> <!-- عرض البريد -->
+    <td>
+      <select onchange="updateUserRole('${u.id}',this.value)">
+        <option value="admin" ${u.role==='admin'?'selected':''}>Admin</option>
+        <option value="user" ${u.role==='user'?'selected':''}>User</option>
+        <option value="guest" ${u.role==='guest'?'selected':''}>Guest</option>
+      </select>
+      <div class="action-buttons">
         <button class="save" onclick="promptUpdatePassword('${u.id}')">تغيير كلمة السر</button>
         <button class="delete" onclick="confirmDeleteUser('${u.id}')">حذف</button>
-      </td>
-    </tr>`;
-  });
+      </div>
+    </td>
+  </tr>`;
+});
+
 
   html+="</tbody></table>";
   container.innerHTML = html;
@@ -460,6 +477,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
