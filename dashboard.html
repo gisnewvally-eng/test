@@ -78,15 +78,69 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
 #visitsChart { height:200px !important; max-width:100%; }
 
 /* ================== Responsive ================== */
+/* ================== Responsive - الهواتف ================== */
 @media (max-width:768px) {
-  .main-content { margin-left:0; padding:15px; }
-  .sidebar { width:200px; top:70px; height:calc(100%-70px); }
-  #toggleSidebar { top:70px; }
+  /* Main Content */
+  .main-content { 
+    padding:10px; /* تقليل البادينج */
+  }
+  .admin-section { 
+    margin-bottom:20px; /* تقليل الفراغ */
+    padding:8px; /* تصغير البادينج */
+  }
+
+  /* Sidebar */
+  .sidebar { 
+    width:180px; 
+    padding:10px; 
+  }
+  #toggleSidebar { 
+    top:70px; 
+    width:38px; height:38px; /* تكبير الزر قليلًا ليكون أوضح للموبايل */
+    font-size:26px; 
+  }
+
+  /* الجداول */
+  table th, table td { padding:5px; font-size:12px; }
+  button { padding:3px 6px; font-size:12px; }
+
+  /* Inputs */
+  input, select { padding:3px; font-size:12px; }
+
+  /* Chart */
+  #visitsChart { height:160px !important; }
 }
+
 @media (max-width:480px) {
-  .sidebar { width:180px; padding:15px; }
-  #toggleSidebar { width:28px; height:28px; font-size:20px; top:70px; }
+  /* Main Content */
+  .main-content { 
+    padding:8px; 
+  }
+  .admin-section { 
+    margin-bottom:15px; 
+    padding:6px; 
+  }
+
+  /* Sidebar */
+  .sidebar { 
+    width:160px; 
+    padding:8px; 
+  }
+  #toggleSidebar { 
+    width:36px; height:36px; font-size:24px; 
+  }
+
+  /* الجداول */
+  table th, table td { padding:4px; font-size:11px; }
+  button { padding:2px 5px; font-size:11px; }
+
+  /* Inputs */
+  input, select { padding:2px; font-size:11px; }
+
+  /* Chart */
+  #visitsChart { height:140px !important; }
 }
+
 </style>
 </head>
 <body>
@@ -356,6 +410,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
