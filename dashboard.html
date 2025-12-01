@@ -171,17 +171,24 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
     margin-bottom: 5px;
   }
   /* السطر الثاني: الدور والأزرار */
-  table td:nth-child(3),
-  table td:nth-child(4) {
-    flex: 1 1 45%;
-  }
-  table td select {
-    width: 100%;
-    margin-bottom: 5px;
-  }
-  table td button {
-    flex: 1 1 48%;
-    margin-bottom: 5px;
+table td:nth-child(3),
+table td:nth-child(4) {
+  flex: 1 1 auto;  /* السماح بالتمدد فقط حسب المحتوى */
+  min-width: 100px; /* الحد الأدنى */
+ }
+
+/* المنزلق */
+table td select {
+  width: auto;      /* لا يمتد لملء كامل الخلية */
+  min-width: 120px; /* حجم مناسب للهواتف */
+  margin-bottom: 5px;
+ }
+
+/* الأزرار */
+table td button {
+  flex: none;       /* لا يمتد */
+  width: auto;      /* عرض تلقائي حسب المحتوى */
+  margin-bottom: 5px;
   }
 }
 </style>
@@ -453,6 +460,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
