@@ -145,44 +145,40 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
     display: block;
     width: 100%;
   }
-
   table thead {
-    display: none; /* إخفاء العناوين في الجوال */
+    display: none; /* إخفاء رؤوس الجدول */
   }
-
   table tr {
     margin-bottom: 15px;
-    border-bottom: 2px solid #ccc;
-    padding-bottom: 10px;
+    padding: 0;
+    border: 1px solid #ccc; /* حد كامل لكل صف */
+    border-radius: 8px;
+    background: #fff;
+    box-sizing: border-box;
   }
-
   table td {
-    text-align: right;
-    padding: 5px 10px;
-    font-size: 13px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
+    padding: 8px 10px;
+    font-size: 13px;
+    border: none; /* إزالة الحد الافتراضي */
   }
-
   /* السطر الأول: الاسم والبريد */
   table td:nth-child(1),
   table td:nth-child(2) {
     flex: 1 1 45%;
     margin-bottom: 5px;
   }
-
   /* السطر الثاني: الدور والأزرار */
   table td:nth-child(3),
   table td:nth-child(4) {
     flex: 1 1 45%;
   }
-
   table td select {
     width: 100%;
     margin-bottom: 5px;
   }
-
   table td button {
     flex: 1 1 48%;
     margin-bottom: 5px;
@@ -457,6 +453,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
