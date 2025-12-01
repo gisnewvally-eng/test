@@ -130,10 +130,6 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
     width:36px; height:36px; font-size:24px; 
   }
 
-  /* الجداول */
-  table th, table td { padding:4px; font-size:11px; }
-  button { padding:2px 5px; font-size:11px; }
-
   /* Inputs */
   input, select { padding:2px; font-size:11px; }
 
@@ -141,71 +137,65 @@ input, select { padding:6px; margin:2px; border:1px solid #ccc; border-radius:4p
   #visitsChart { height:140px !important; }
 }
 @media (max-width: 768px) {
-  table, thead, tbody, th, td, tr {
-    display: block;
+
+  /* جعل الجدول يحتفظ بالشكل الأساسي */
+  table {
     width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
   }
-  table thead {
-    display: none; /* إخفاء رؤوس الجدول */
-  }
-  table tr {
-    margin-bottom: 15px;
-    padding: 0;
-    border: 1px solid #ccc; /* حد كامل لكل صف */
-    border-radius: 8px;
-    background: #fff;
-    box-sizing: border-box;
-  }
-  table td {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+
+  table th, table td {
     padding: 8px 10px;
+    text-align: right;
     font-size: 13px;
-    border: none; /* إزالة الحد الافتراضي */
+    border-bottom: 1px solid #ccc;
   }
+
+  table th {
+    background: #00a86b;
+    color: white;
+  }
+
+  table tr:hover {
+    background: #f2f2f2;
+  }
+
   /* السطر الأول: الاسم والبريد */
   table td:nth-child(1),
   table td:nth-child(2) {
-    flex: 1 1 45%;
+    display: block;
+    width: 100%;
     margin-bottom: 5px;
   }
+
   /* السطر الثاني: الدور والأزرار */
-table td:nth-child(3),
-table td:nth-child(4) {
-  flex: 1 1 auto;  /* السماح بالتمدد فقط حسب المحتوى */
-  min-width: 100px; /* الحد الأدنى */
- }
+  table td:nth-child(3),
+  table td:nth-child(4) {
+    display: block;
+    width: 100%;
+    margin-bottom: 5px;
+  }
 
-/* المنزلق */
-table td select {
-  width: auto;      /* لا يمتد لملء كامل الخلية */
-  min-width: 120px; /* حجم مناسب للهواتف */
-  margin-bottom: 5px;
- }
+  /* المنزلق الخاص بالدور */
+  table td select {
+    width: 100%;      /* ممتد بعرض الخلية */
+    min-width: auto;
+    margin-bottom: 5px;
+  }
 
-/* الأزرار */
-table td button {
-  flex: none;       /* لا يمتد */
-  width: auto;      /* عرض تلقائي حسب المحتوى */
-  margin-bottom: 5px;
+  /* الأزرار */
+  table td button {
+    width: 48%;       /* عرض متساوي للأزرار مع مسافة صغيرة بينهم */
+    margin-right: 2%;
+    margin-bottom: 5px;
+  }
+
+  table td button:last-child {
+    margin-right: 0;  /* إزالة المسافة بعد الزر الأخير */
   }
 }
-  @media (max-width:768px) {
-  td select, td .action-buttons {
-    display:block;
-    width:100%;
-    margin-bottom:5px;
-  }
-  td .action-buttons button {
-    width:48%; /* عرض الأزرار متساوي */
-    margin-right:2%;
-    margin-bottom:5px;
-  }
-  td .action-buttons button:last-child {
-    margin-right:0;
-  }
-}
+
 
 </style>
 </head>
@@ -477,6 +467,7 @@ window.addEventListener('load', updateVisitsChart);
 
 </body>
 </html>
+
 
 
 
