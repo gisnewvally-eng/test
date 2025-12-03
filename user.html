@@ -38,7 +38,22 @@ header button { padding:8px 15px; border:none; border-radius:6px; cursor:pointer
 .legend-item img { width:48px; height:48px; object-fit:cover; border-radius:8px; }
 .legend-text .title { font-weight:700; color:#0c3b66; display:block; }
 .legend-text .desc { font-size:12px; color:#556777; margin-top:3px; }
-
+/* ================== Footer ================== */
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(90deg,#00F260,#0575E6);
+  color: #fff;
+  font-weight: 700;
+  padding: 6px 0;
+  z-index: 1000;
+  /* لتوسيط النص سطريًا وعموديًا */
+  display: flex;
+  align-items: center;    /* توسيط عمودي */
+  justify-content: center; /* توسيط أفقي */
+  text-align: center;
 /* Responsive */
 @media (max-width:600px){
   .map-card { flex-direction:column; align-items:flex-start; }
@@ -218,3 +233,4 @@ async function loadDynamicMaps(role) {
 </script>
 </body>
 </html>
+
