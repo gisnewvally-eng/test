@@ -9,13 +9,11 @@
 <script src="assets/js/auth.js"></script>
 
 <style>
-/* ---------------------------------
-   CSS (تبسيط وإزالة الأقسام غير الضرورية)
-   --------------------------------- */
 body { margin:0; font-family:sans-serif; background:#f0f3f7; direction:rtl; }
 header { background: linear-gradient(90deg, #1a2980, #26d0ce); color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
 .content { padding:20px; }
 .card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:25px; }
+
 .map-card { 
     background:#f9f9f9; 
     border-radius:8px; 
@@ -35,95 +33,158 @@ header { background: linear-gradient(90deg, #1a2980, #26d0ce); color:#fff; paddi
     gap: 15px;
 }
 .map-card img { width:40px; height:40px; object-fit:contain; }
-.map-card:hover { box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+
+/* -------- Legend ------- */
+.map-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.legend-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.07);
+  padding: 10px 12px;
+  border-radius: 10px;
+  min-width: 180px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+.legend-item img {
+  width:48px;
+  height:48px;
+  object-fit:cover;
+  border-radius:8px;
+}
+.legend-text .title { font-weight:700; color:#0c3b66; display:block; }
+.legend-text .desc { font-size:12px; color:#556777; margin-top:3px; }
 </style>
 </head>
+
 <body>
 
 <header>
-  <h2>أهلاً بك - لوحة الضيف (<span id="userName"></span>)</h2>
-  <button onclick="logout()" style="padding:8px 15px;border:none;border-radius:6px;cursor:pointer;">تسجيل الخروج</button>
+  <h2>أهلاً بك - لوحة الضيف (<span id="userName"></span>)</h2>
+  <button onclick="logout()" style="padding:8px 15px;border:none;border-radius:6px;cursor:pointer;">تسجيل الخروج</button>
 </header>
 
 <div class="content">
 
-  <div class="card">
-    <h3>الخرائط المتاحة لدورك:</h3>
-    <p>هذه هي الخرائط التي سمح لك المسؤولون بالاطلاع عليها.</p>
-    <div id="guestMaps">جاري تحميل الخرائط...</div>
-  </div>
+  <div class="card" id="mapTypesCard">
+    <h3>أنواع الخرائط (مرجع سريع)</h3>
+    <p style="margin-top:6px; color:#444;">الأسفل يوضح صور وأسماء الأنواع الأربعة لتعرف نوع كل خريطة.</p>
+    <div id="mapLegend" class="map-legend"></div>
+  </div>
 
-  </div>
+  <div class="card">
+    <h3>الخرائط المتاحة لدورك:</h3>
+    <p>هذه هي الخرائط التي سمح لك المسؤولون بالاطلاع عليها.</p>
+    <div id="guestMaps">جاري تحميل الخرائط...</div>
+  </div>
+
+</div>
 
 <script>
-    // ------------------ 1. حماية الصفحة عند التحميل ------------------
-    window.onload = async function() {
-        
-        // 🛡️ حماية الصفحة وجلب بيانات المستخدم
-        const userProfile = await protectPage(); 
-        
-        if (!userProfile) return; // protectPage ستقوم بالتوجيه إن لم يكن مسجلاً
+// ------------------ حماية وتحميل الصفحة ------------------
+window.onload = async function () {
 
-        // ⚠️ التأكد من الدور وتوجيه الأدوار الأخرى
-        if (userProfile.role === 'admin') {
-            window.location.href = "dashboard.html";
-            return;
-        } else if (userProfile.role === 'user') {
-            window.location.href = "user.html";
-            return;
-        } else if (userProfile.role !== 'guest') {
-            // أي دور آخر غير معروف
-            logout(); 
-            return;
-        }
+    const userProfile = await protectPage();
+    if (!userProfile) return;
 
-        // عرض اسم المستخدم
-        document.getElementById("userName").innerText = userProfile.email; 
-        
-        // جلب وعرض الخرائط المخصصة للضيف
-        await renderGuestMaps();
-    };
+    if (userProfile.role === "admin") return location.href = "dashboard.html";
+    if (userProfile.role === "user") return location.href = "user.html";
+    if (userProfile.role !== "guest") return logout();
 
-    /**
-     * 🗺️ جلب وعرض الخرائط المتاحة من Supabase لدور 'guest'
-     */
-   async function renderGuestMaps(){
+    document.getElementById("userName").innerText = userProfile.email;
+
+    // 🔥 تحميل أنواع الخرائط أعلاه
+    await renderMapTypesLegend();
+
+    // 🔥 تحميل خرائط الضيف
+    await renderGuestMaps();
+};
+
+
+
+// -----------------------------------------------
+// 📌 1) دالة عرض الـ LEGEND (الأنواع الأربعة)
+// -----------------------------------------------
+async function renderMapTypesLegend() {
+
+    const legend = document.getElementById("mapLegend");
+    legend.innerHTML = "";
+
+    const types = [
+        { key: "خدمية", title: "خدمية", desc: "مرافق وخدمات عامة" },
+        { key: "سكنية", title: "سكنية", desc: "مناطق وأحياء سكنية" },
+        { key: "تجارية", title: "تجارية", desc: "أسواق ومحلات وأنشطة تجارية" },
+        { key: "صناعية", title: "صناعية", desc: "منشآت ومناطق صناعية" }
+    ];
+
+    types.forEach(t => {
+
+        // الصور تأتي من Supabase خلال window.mapImages
+        const src = (window.mapImages && window.mapImages[t.key]) ? window.mapImages[t.key] : "assets/images/default.png";
+
+        const item = document.createElement("div");
+        item.className = "legend-item";
+
+        item.innerHTML = `
+            <img src="${src}" alt="${t.title}">
+            <div class="legend-text">
+                <span class="title">${t.title}</span>
+                <span class="desc">${t.desc}</span>
+            </div>
+        `;
+
+        legend.appendChild(item);
+    });
+}
+
+
+
+// -----------------------------------------------
+// 📌 2) دالة عرض خرائط الضيف من Supabase
+// -----------------------------------------------
+async function renderGuestMaps() {
+
     const mapsContainer = document.getElementById("guestMaps");
-    
-    // جلب كل الخرائط
-    const allMaps = await getAccessibleMaps('guest'); // أو جلب كل الخرائط بدون تصفية حسب الدور
 
-    // تصفية الخرائط التي يسمح للضيف بالوصول إليها
-    const accessibleMaps = allMaps.filter(map => map.allowed_roles?.includes('guest'));
+    const allMaps = await getAccessibleMaps("guest");
+
+    const accessibleMaps = allMaps.filter(m => m.allowed_roles?.includes("guest"));
 
     if (accessibleMaps.length === 0) {
-        mapsContainer.innerHTML = "<p style='color: #888; font-style: italic;'>لا توجد خرائط متاحة لدورك حالياً. يرجى التواصل مع المسؤول.</p>";
+        mapsContainer.innerHTML = "<p style='color:#777;'>لا توجد خرائط متاحة حالياً.</p>";
         return;
     }
 
-    mapsContainer.innerHTML = ""; // مسح رسالة التحميل
+    mapsContainer.innerHTML = "";
 
     accessibleMaps.forEach(map => {
+
         const div = document.createElement("div");
         div.className = "map-card";
 
         const link = document.createElement("a");
         link.href = map.url;
-        link.target = "_blank"; // فتح الرابط في تبويب جديد
+        link.target = "_blank";
 
-        // استخدام الصور من Supabase أو حسب النوع، مع صورة احتياطية "سكنية"
-        const imgSrc = map.image_url || mapImages[map.type] || mapImages["سكنية"];
+        const imgSrc = map.image_url || (window.mapImages && window.mapImages[map.type]) || "assets/images/default.png";
 
-        link.innerHTML = `<img src="${imgSrc}" alt="خريطة"><span>${map.name}</span>`;
+        link.innerHTML = `
+            <img src="${imgSrc}" alt="">
+            <span>${map.name}</span>
+        `;
 
         div.appendChild(link);
         mapsContainer.appendChild(div);
     });
 }
 
-
 </script>
+
 </body>
 </html>
-
-
