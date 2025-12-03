@@ -97,7 +97,7 @@ window.onload = async function () {
     if (userProfile.role === "user") return location.href = "user.html";
     if (userProfile.role !== "guest") return logout();
 
-    document.getElementById("userName").innerText = userProfile.email;
+    document.getElementById("userName").innerText = userProfile.username;
 
     // 🔥 تحميل أنواع الخرائط أعلاه
     await renderMapTypesLegend();
@@ -188,4 +188,5 @@ async function renderGuestMaps() {
 
 </body>
 </html>
+
 
