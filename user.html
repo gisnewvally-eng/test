@@ -3,118 +3,207 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>User Panel - جهاز معلومات شبكات المرافق</title>
+<title>لوحة المستخدم</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/js/auth.js"></script>
 
 <style>
-body { margin:0; font-family:sans-serif; direction:rtl; }
-header { background: linear-gradient(90deg,#00F260,#0575E6); color:white; padding:15px 25px; display:flex; justify-content:space-between; align-items:center; position: fixed; top:0; left:0; right:0; z-index:1001; }
-header span { font-weight:bold; }
-header a { color:white; text-decoration:none; font-weight:bold; margin-left:15px; }
-#toggleSidebar:hover { background: #26d0ce; }
+body { margin:0; font-family:sans-serif; background:#f0f3f7; direction:rtl; }
+header { background: linear-gradient(90deg,#00F260,#0575E6); color:#fff; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; }
+header h2 { margin:0; font-size:1.2em; }
+header button { padding:8px 15px; border:none; border-radius:6px; cursor:pointer; background:#004b8d; color:#fff; }
+.content { padding:20px; margin-left:0; margin-top:10px; }
+
+/* Sidebar */
+#toggleSidebar {
+    position: fixed; top:70px; left:0; width:30px; height:30px; background:#1a2980; color:white;
+    font-size:24px; display:flex; justify-content:center; align-items:center;
+    border-radius:0 5px 5px 0; cursor:pointer; z-index:1100;
+}
 .sidebar { width:220px; background:#2c3e50; color:white; position:fixed; top:70px; left:0; height:calc(100% - 70px); padding:20px; overflow-y:auto; transition: transform 0.3s ease; }
 .sidebar.hidden { transform: translateX(-250px); }
-.sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; padding: 5px; }
+.sidebar a { color:white; text-decoration:none; display:block; margin:12px 0; padding:5px; }
 .sidebar a:hover { background:#34495e; padding-left:10px; }
-.main-content { margin-top:70px; margin-left:240px; padding:30px; padding-bottom:60px; }
-.map-card { 
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    margin-bottom: 10px; 
-    padding: 10px; 
-    background: #f1f1f1; 
-    border-radius: 6px; 
-}
-.map-card a { text-decoration:none; color:#1a2980; font-weight:bold; }
+
+/* Cards */
+.card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 15px rgba(0,0,0,0.1); margin-bottom:25px; }
+.map-card { background:#f9f9f9; border-radius:8px; padding:15px; margin-bottom:15px; display:flex; align-items:center; justify-content:space-between; gap:15px; border-right:5px solid #004b8d; }
+.map-card a { text-decoration:none; color:#1a2980; font-weight:bold; display:flex; align-items:center; gap:15px; }
+.map-card img { width:40px; height:40px; object-fit:contain; }
 .map-card button { padding:5px 10px; border:none; border-radius:5px; cursor:pointer; color:#fff; }
 
-footer { position: fixed; bottom:0; left:0; right:0; background: linear-gradient(90deg,#00F260,#0575E6); color:#fff; display:flex; flex-direction: column; align-items:center; justify-content:center; text-align:center; font-weight:700; padding:6px 0; z-index:1000; }
-footer .line2 { font-weight:600; font-size:13px; margin-top:2px; }
+.map-legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:12px; }
+.legend-item { display:flex; gap:10px; align-items:center; background:#fff; border:1px solid rgba(0,0,0,0.07); padding:10px 12px; border-radius:10px; min-width:180px; box-shadow:0 4px 10px rgba(0,0,0,0.05); }
+.legend-item img { width:48px; height:48px; object-fit:cover; border-radius:8px; }
+.legend-text .title { font-weight:700; color:#0c3b66; display:block; }
+.legend-text .desc { font-size:12px; color:#556777; margin-top:3px; }
+
+/* Responsive */
+@media (max-width:600px){
+  .map-card { flex-direction:column; align-items:flex-start; }
+  .map-card img { width:40px; height:40px; }
+  .legend-item { min-width:140px; padding:8px; }
+  .legend-item img { width:40px; height:40px; }
+  .content { padding:10px; margin-left:0; }
+  .sidebar { width:180px; }
+}
 </style>
 </head>
+
 <body>
 
 <header>
-  <div>مرحبا، <span id="userName"></span> (<span id="userRole"></span>)</div>
-  <nav><a href="#" id="logoutLink">تسجيل الخروج</a></nav>
+  <h2>أهلاً بك - لوحة المستخدم (<span id="userName"></span>)</h2>
+  <button onclick="logout()">تسجيل الخروج</button>
 </header>
-  
-<div id="toggleSidebar" style="
-    position: fixed;
-    top: 80px;       
-    left: 0;
-    width: 30px;
-    height: 30px;
-    background: #1a2980;
-    color: white;
-    font-size: 24px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 0 5px 5px 0;
-    cursor: pointer;
-    z-index: 1100;">
-    &#9776;
-</div>
+
+<div id="toggleSidebar">&#9776;</div>
 
 <div class="sidebar">
-  <h4>خرائط النظام</h4>
-  <div id="dynamicMapsLinks">جاري تحميل الخرائط...</div>
+  <h4>خرائط النظام</h4>
+  <div id="dynamicMapsLinks">جاري تحميل الخرائط...</div>
 </div>
 
-<div class="main-content">
-  <h2>لوحة تحكم المستخدم</h2>
-  <p>مرحبا بك في لوحة تحكم المستخدم. يمكنك الوصول إلى الخرائط المتاحة لدورك من القائمة الجانبية.</p>
-  
-  <h3>الخرائط المتاحة لدورك</h3>
-  <div id="availableMapsContent">
-    جاري تحميل الخرائط...
-  </div>
+<div class="content">
+
+  <div class="card" id="mapTypesCard">
+    <h3>أنواع الخرائط (مرجع سريع)</h3>
+    <p style="margin-top:6px; color:#444;">الأسفل يوضح صور وأسماء الأنواع الأربعة لتعرف أي نوع تمثّله كل خريطة.</p>
+    <div id="mapLegend" class="map-legend"></div>
+  </div>
+
+  <div class="card">
+    <h3>الخرائط المتاحة لدورك:</h3>
+    <p>يمكنك التحكم في تفعيل أو تعطيل الوصول للضيف لكل خريطة.</p>
+    <div id="userMaps">جاري تحميل الخرائط...</div>
+  </div>
+
 </div>
 
 <footer>
-  إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
-  <span class="line2">Designed By Eng. Ahmed Labib </span>
+  إعداد جهاز معلومات شبكات المرافق - محافظة الوادي الجديد
 </footer>
 
 <script>
 window.onload = async function() {
-    const userProfile = await protectPage(); 
-    if (!userProfile) return; 
+    const userProfile = await protectPage();
+    if(!userProfile) return;
 
-    if (userProfile.role !== 'user' && userProfile.role !== 'admin') {
-        alert('ليس لديك صلاحية الوصول لهذه الصفحة.');
-        logout(); 
+    if(userProfile.role !== "user" && userProfile.role !== "admin") {
+        alert("ليس لديك صلاحية الوصول لهذه الصفحة.");
+        logout();
         return;
     }
 
-    document.getElementById("userName").innerText = userProfile.email; 
-    document.getElementById("userRole").innerText = userProfile.role;
+    document.getElementById("userName").innerText = userProfile.username || userProfile.name || userProfile.email;
 
-    await loadDynamicMaps(userProfile.role);
-    await renderUserMapsForGuestControl(userProfile.role);
-
+    // Sidebar toggle
     const toggleBtn = document.getElementById("toggleSidebar");
     const sidebar = document.querySelector(".sidebar");
     toggleBtn.onclick = function() {
-        sidebar.classList.toggle("hidden"); 
+        sidebar.classList.toggle("hidden");
         toggleBtn.innerHTML = sidebar.classList.contains("hidden") ? "&#9776;" : "&times;";
     };
 
-    document.getElementById("logoutLink").onclick = (e)=>{ 
-        e.preventDefault(); 
-        logout(); 
-    };
+    // تحميل Legend
+    await renderMapTypesLegend();
+
+    // تحميل الخرائط مع إمكانية تفعيل/تعطيل للضيف
+    await renderUserMaps(userProfile.role);
+
+    // تحميل الروابط في Sidebar
+    await loadDynamicMaps(userProfile.role);
 };
 
+// ---------------- Legend ----------------
+async function renderMapTypesLegend() {
+    const legend = document.getElementById("mapLegend");
+    legend.innerHTML = "";
+
+    const types = [
+        { key:"خدمية", title:"خدمية", desc:"مرافق وخدمات عامة" },
+        { key:"سكنية", title:"سكنية", desc:"مناطق وأحياء سكنية" },
+        { key:"تجارية", title:"تجارية", desc:"أسواق ومحلات وأنشطة تجارية" },
+        { key:"صناعية", title:"صناعية", desc:"منشآت ومناطق صناعية" }
+    ];
+
+    types.forEach(t => {
+        const src = (window.mapImages && window.mapImages[t.key]) ? window.mapImages[t.key] : (window.mapImages && window.mapImages.logo) || '';
+        const item = document.createElement("div");
+        item.className = "legend-item";
+        item.innerHTML = `
+            <img src="${src}" alt="${t.title}">
+            <div class="legend-text">
+                <span class="title">${t.title}</span>
+                <span class="desc">${t.desc}</span>
+            </div>
+        `;
+        legend.appendChild(item);
+    });
+}
+
+// ---------------- الخرائط ----------------
+async function renderUserMaps(userRole) {
+    const container = document.getElementById("userMaps");
+    container.innerHTML = "جاري تحميل الخرائط...";
+
+    const maps = await getAccessibleMaps(userRole);
+    if(maps.length === 0){
+        container.innerHTML = "<p style='color:#888; font-style:italic;'>لا توجد خرائط متاحة حالياً.</p>";
+        return;
+    }
+
+    container.innerHTML = "";
+
+    maps.forEach(map => {
+        const div = document.createElement("div");
+        div.className = "map-card";
+
+        const link = document.createElement("a");
+        link.href = map.url;
+        link.target = "_blank";
+
+        const imgSrc = map.image_url || (window.mapImages && window.mapImages[map.type]) || '';
+        link.innerHTML = `<img src="${imgSrc}" alt=""><span>${map.name}</span>`;
+
+        // زر لتفعيل/تعطيل الضيف
+        const guestToggle = document.createElement("button");
+        guestToggle.textContent = map.allowed_roles?.includes("guest") ? "مفعل للضيف" : "غير مفعل للضيف";
+        guestToggle.style.background = map.allowed_roles?.includes("guest") ? "#26d0ce" : "#ccc";
+
+        guestToggle.onclick = async () => {
+            let newRoles = map.allowed_roles || [];
+            if(newRoles.includes("guest")){
+                newRoles = newRoles.filter(r => r !== "guest");
+            } else {
+                newRoles.push("guest");
+            }
+
+            const { error } = await supabaseClient.from("maps").update({ allowed_roles: newRoles }).eq("id", map.id);
+            if(error){
+                alert("خطأ أثناء تحديث الصلاحية: "+error.message);
+                console.error(error);
+                return;
+            }
+
+            map.allowed_roles = newRoles;
+            guestToggle.textContent = newRoles.includes("guest") ? "مفعل للضيف" : "غير مفعل للضيف";
+            guestToggle.style.background = newRoles.includes("guest") ? "#26d0ce" : "#ccc";
+        };
+
+        div.appendChild(link);
+        div.appendChild(guestToggle);
+        container.appendChild(div);
+    });
+}
+
+// Sidebar links
 async function loadDynamicMaps(role) {
     const mapsContainer = document.getElementById("dynamicMapsLinks");
-    const accessibleMaps = await getAccessibleMaps(role); 
+    const accessibleMaps = await getAccessibleMaps(role);
     if(accessibleMaps.length === 0){
-        mapsContainer.innerHTML = "<p style='color: #ccc; font-size: 0.9em;'>لا توجد خرائط متاحة لدورك حالياً.</p>";
+        mapsContainer.innerHTML = "<p style='color:#ccc; font-size:0.9em;'>لا توجد خرائط متاحة لدورك حالياً.</p>";
         return;
     }
     mapsContainer.innerHTML = "";
@@ -124,54 +213,6 @@ async function loadDynamicMaps(role) {
         a.textContent = map.name;
         a.target = "_blank";
         mapsContainer.appendChild(a);
-    });
-}
-
-async function renderUserMapsForGuestControl(userRole) {
-    const mapsContainer = document.getElementById("availableMapsContent");
-    mapsContainer.innerHTML = "جاري تحميل الخرائط...";
-    const accessibleMaps = await getAccessibleMaps(userRole); 
-    if(accessibleMaps.length === 0){
-        mapsContainer.innerHTML = "<p style='color: #888; font-style: italic;'>لا توجد خرائط متاحة.</p>";
-        return;
-    }
-    mapsContainer.innerHTML = "";
-    accessibleMaps.forEach(map => {
-        const div = document.createElement("div");
-        div.className = "map-card";
-
-        const link = document.createElement("a");
-        link.href = map.url;
-        link.target = "_blank";
-        link.textContent = map.name;
-
-        const guestToggle = document.createElement("button");
-        guestToggle.textContent = map.allowed_roles?.includes('guest') ? "مفعل للضيف" : "غير مفعل للضيف";
-        guestToggle.style.background = map.allowed_roles?.includes('guest') ? "#26d0ce" : "#ccc";
-
-        guestToggle.onclick = async () => {
-            let newRoles = map.allowed_roles || [];
-            if(newRoles.includes('guest')){
-                newRoles = newRoles.filter(r => r !== 'guest');
-            } else {
-                newRoles.push('guest');
-            }
-            const { error } = await supabaseClient.from('maps').update({
-                allowed_roles: newRoles
-            }).eq('id', map.id);
-            if(error){
-                alert("حدث خطأ أثناء تحديث الصلاحية: " + error.message);
-                console.error(error);
-                return;
-            }
-            map.allowed_roles = newRoles;
-            guestToggle.textContent = newRoles.includes('guest') ? "مفعل للضيف" : "غير مفعل للضيف";
-            guestToggle.style.background = newRoles.includes('guest') ? "#26d0ce" : "#ccc";
-        };
-
-        div.appendChild(link);
-        div.appendChild(guestToggle);
-        mapsContainer.appendChild(div);
     });
 }
 </script>
